@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>English Practice App</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root { --main: #FF0000; --bg: #0f0f0f; --card: #282828; --btn: #3f3f3f; --accent: #00ff88; --yt: #ff0000; }
+        body { font-family: sans-serif; background: var(--bg); color: white; margin: 0; padding: 15px; }
+        .practice-card { background: var(--card); border-radius: 15px; padding: 20px; margin-bottom: 25px; border-left: 5px solid var(--main); position: relative; }
+        .yt-link { position: absolute; top: 15px; right: 15px; color: var(--yt); font-size: 1.8rem; text-decoration: none; }
+        .title { font-size: 1.2rem; font-weight: bold; margin-bottom: 15px; display: block; padding-right: 40px; }
+        .phrase-item { margin-bottom: 15px; background: #1a1a1a; padding: 15px; border-radius: 10px; }
+        button { width: 100%; background: var(--btn); color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px; }
+        .status { margin-top: 10px; font-size: 0.9rem; color: #ccc; }
+        .diff-correct { color: var(--accent); font-weight: bold; }
+        .diff-error { color: #ff4444; text-decoration: line-through; margin-right: 5px; }
+    </style>
+</head>
+<body>
+    <h2 style="text-align:center;">English Practice 🔥</h2>
+    <div id="content">データを読み込んでいます...</div>
+
+    <script>
+        // ★ここにスプレッドシートからコピーしたCSVのURLを貼り付けて！
+        const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRAWmRJRNgjq3OtDdRPDvf3uXywGfHW6_saJSkox9Q0jHOUrg9RzjYCMcCeB8r5aesQUPJo1p1Lvbbm/pub?gid=0&single=true&output=csv';
+
+        async function loadData() {
+            const container = document.getElementById('content');
+            try {
+                const response = await fetch(csvUrl);
+                const csvData = await response.text();
+                const rows = csvData.split('\n').map(row => row.split(','));
+
+                container.innerHTML = '';
+                // 2行目から読み込み
+                for (let i = 1; i < rows.length; i++) {
+                    const row = rows[i];
+                    if (row.length < 3 || (!row[1] && !row[2])) continue;
+
+                    const title = row[1] || "No Title";
+                    const youtubeUrl = row[7] || null;
+                    const ytIcon = youtubeUrl && youtubeUrl.includes('http') ? `<a href="${youtubeUrl}" target="_blank" class="yt-link">📺</a>` : '';
+
+                    let phrases = '';
+                    // C列(2)〜G列(6)をループ
+                    for (let j = 2; j <= 6; j++) {
+                        const text = row[j] ? row[j].trim() : "";
+                        if (text.length < 2) continue;
+                        const id = `s-${i}-${j}`;
+                        phrases += `<div class="phrase-item"><div>${text}</div><button onclick="check('${text.replace(/'/g, "\\'")}', '${id}')">🎤 Speak</button><div class="status" id="${id}"></div></div>`;
+                    }
+
+                    container.innerHTML += `<div class="practice-card">${ytIcon}<span class="title">${title}</span>${phrases}</div>`;
+                }
+            } catch (e) {
+                container.innerHTML = 'データの読み込みに失敗しました。公開設定を確認してください。';
+            }
+        }
+
+        function check(target, id) {
+            const status = document.getElementById(id);
+            const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+            recognition.lang = 'en-US';
+            status.innerHTML = "聴いています...";
+            recognition.onresult = (event) => {
+                const speech = event.results[0][0].transcript;
+                const clean = (s) => s.toLowerCase().replace(/[.!?,]/g, "").trim();
+                const tWords = clean(target).split(/\s+/);
+                const sWords = clean(speech).split(/\s+/);
+                let diff = "";
+                tWords.forEach(w => {
+                    diff += sWords.includes(w) ? `<span class="diff-correct">${w}</span> ` : `<span class="diff-error">${w}</span> `;
+                });
+                if (clean(target) === clean(speech)) {
+                    status.innerHTML = "✅ Perfect!";
+                    confetti({ particleCount: 150, spread: 70, origin: { y: 0.7 } });
+                } else {
+                    status.innerHTML = `<div>You: "${speech}"</div><div>Check: ${diff}</div>`;
+                }
+            };
+            recognition.start();
+        }
+        loadData();
+    </script>
+</body>
+</html>
