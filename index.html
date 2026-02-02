@@ -3,32 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>英語発音マスター 🔥</title>
+    <title>English Pronunciation Joy 🔥</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
-        :root { --main: #FF0000; --bg: #0f0f0f; --card: #282828; --btn: #3f3f3f; --accent: #00ff88; --yt: #ff0000; }
-        body { font-family: sans-serif; background: var(--bg); color: white; margin: 0; padding: 15px; }
-        .menu-container { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 15px; margin-bottom: 20px; border-bottom: 1px solid var(--btn); }
-        .date-tab { background: var(--btn); color: white; border: none; padding: 8px 15px; border-radius: 20px; cursor: pointer; white-space: nowrap; }
-        .date-tab.active { background: var(--main); font-weight: bold; }
-        .practice-card { background: var(--card); border-radius: 15px; padding: 20px; margin-bottom: 25px; border-left: 5px solid var(--main); position: relative; }
-        .yt-link { position: absolute; top: 15px; right: 15px; color: var(--yt); font-size: 1.8rem; text-decoration: none; }
-        .title { font-size: 1.2rem; font-weight: bold; margin-bottom: 15px; display: block; padding-right: 40px; }
-        .phrase-item { margin-bottom: 15px; background: #1a1a1a; padding: 15px; border-radius: 10px; }
-        .jp-text { color: #ffca28; font-size: 0.95rem; margin-bottom: 8px; font-weight: bold; }
-        .feedback-text { font-size: 0.85rem; color: #aaa; margin-bottom: 5px; }
-        .target-phrase { font-size: 1.25rem; line-height: 1.4; margin-bottom: 10px; }
-        .correct { color: var(--accent); font-weight: bold; }
-        .error { color: #ff4444; text-decoration: underline; font-weight: bold; }
-        button.speak-btn { width: 100%; background: var(--main); color: white; border: none; padding: 15px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 1rem; }
-        .score-display { text-align: right; font-size: 1.3rem; font-weight: bold; color: var(--accent); margin-top: 5px; }
-        .status-msg { margin-top: 8px; font-size: 0.9rem; text-align: center; color: #bbb; }
+        :root {
+            --primary: #FF9800; /* 元気なオレンジ */
+            --secondary: #673AB7; /* 知的な紫 */
+            --bg: #F0F4F8; /* 爽やかな薄い青白 */
+            --card-bg: #FFFFFF;
+            --text: #333333;
+            --accent: #00C853; /* 正解の緑 */
+            --error: #FF5252; /* 間違いの赤 */
+            --info: #2196F3; /* インフォメーションの青 */
+        }
+        
+        body { font-family: 'Helvetica Neue', Arial, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; }
+        
+        /* 日付メニュー */
+        .menu-container { display: flex; gap: 10px; overflow-x: auto; padding: 10px 0; margin-bottom: 20px; }
+        .date-tab { background: #E0E0E0; color: #666; border: none; padding: 10px 20px; border-radius: 25px; cursor: pointer; white-space: nowrap; font-weight: bold; transition: 0.3s; }
+        .date-tab.active { background: var(--secondary); color: white; transform: scale(1.05); }
+
+        /* カードデザイン */
+        .practice-card { background: var(--card-bg); border-radius: 20px; padding: 25px; margin-bottom: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); position: relative; border-top: 6px solid var(--primary); }
+        .yt-link { position: absolute; top: 15px; right: 20px; color: #FF0000; font-size: 2rem; text-decoration: none; }
+        
+        .card-title { font-size: 1.3rem; font-weight: bold; color: var(--secondary); margin-bottom: 20px; display: block; border-bottom: 2px solid #f0f0f0; padding-bottom: 10px; }
+        
+        .phrase-item { margin-bottom: 20px; background: #fafafa; padding: 20px; border-radius: 15px; border: 1px solid #eee; }
+        
+        /* 配置：見出しが上 */
+        .target-phrase { font-size: 1.4rem; line-height: 1.4; margin-bottom: 8px; font-weight: bold; color: #1a237e; }
+        .jp-text { color: #757575; font-size: 1rem; margin-bottom: 15px; font-style: italic; }
+        
+        /* あなたの声はフレーズの下 */
+        .feedback-container { background: #fff; padding: 10px; border-radius: 8px; margin-bottom: 15px; border: 1px dashed #ccc; }
+        .feedback-label { font-size: 0.8rem; color: var(--info); font-weight: bold; margin-bottom: 4px; display: block; }
+        .feedback-text { font-size: 1.1rem; color: #555; min-height: 1.4em; }
+        
+        /* ボタン：シュッとさせたオレンジ */
+        button.speak-btn { 
+            width: 100%; background: var(--primary); color: white; border: none; 
+            padding: 14px; border-radius: 12px; cursor: pointer; font-weight: bold; 
+            font-size: 1.1rem; transition: 0.2s; box-shadow: 0 4px 0 #E68A00;
+        }
+        button.speak-btn:active { transform: translateY(3px); box-shadow: none; }
+        
+        .score-display { text-align: right; font-size: 1.5rem; font-weight: 900; color: var(--accent); margin-top: 10px; }
+        .status-msg { margin-top: 10px; font-size: 0.9rem; text-align: center; color: #888; font-weight: bold; }
+        
+        /* 単語ごとの色付け */
+        .correct { color: var(--accent); }
+        .error { color: var(--error); text-decoration: underline; }
     </style>
 </head>
 <body>
-    <h2 style="text-align:center;">英語発音マスター 🔥</h2>
+    <h2 style="text-align:center; color: var(--secondary);">Enjoy English! ✨</h2>
     <div id="dateMenu" class="menu-container"></div>
-    <div id="content">データを読み込んでいます...</div>
+    <div id="content">読み込み中...</div>
 
     <script>
         // ★ここに自分のCSVリンクを貼り付けて！
@@ -39,17 +71,15 @@
             try {
                 const response = await fetch(csvUrl);
                 const csvString = await response.text();
-                // 改行とカンマで分解
                 allData = csvString.split(/\r?\n/).map(row => row.split(','));
                 createMenu();
             } catch (e) {
-                document.getElementById('content').innerHTML = 'エラー: スプレッドシートの公開設定を確認してください。';
+                document.getElementById('content').innerHTML = 'エラー: スプレッドシートを確認してください。';
             }
         }
 
         function createMenu() {
             const menu = document.getElementById('dateMenu');
-            // A列の日付を取得
             const dates = [...new Set(allData.slice(1).map(r => r[0]))].filter(d => d && d.trim() !== "");
             menu.innerHTML = '';
             dates.forEach(date => {
@@ -63,7 +93,6 @@
                 };
                 menu.appendChild(btn);
             });
-            // 最新の日付を自動クリック
             if(menu.lastChild) menu.lastChild.click();
         }
 
@@ -73,12 +102,11 @@
             const filteredRows = allData.filter(row => row[0] === targetDate);
 
             filteredRows.forEach((row, i) => {
-                const title = row[1] || "タイトルなし";
+                const title = row[1] || "Today's Lesson";
                 const youtubeUrl = row[12] ? row[12].trim() : null;
                 const ytIcon = youtubeUrl && youtubeUrl.startsWith('http') ? `<a href="${youtubeUrl}" target="_blank" class="yt-link">📺</a>` : '';
 
                 let phrasesHtml = '';
-                // 英語(C,E,G,I,K) と 日本語(D,F,H,J,L) のペアを読み込む
                 for (let j = 2; j <= 10; j += 2) {
                     const enText = row[j] ? row[j].trim() : "";
                     const jpText = row[j+1] ? row[j+1].trim() : "";
@@ -87,15 +115,20 @@
                     const id = `phrase-${i}-${j}`;
                     phrasesHtml += `
                         <div class="phrase-item">
-                            <div class="jp-text">💡 ${jpText}</div>
-                            <div class="feedback-text" id="feedback-${id}">あなたの声: ---</div>
                             <div class="target-phrase" id="display-${id}">${enText}</div>
-                            <button class="speak-btn" onclick="check('${enText.replace(/'/g, "\\'")}', '${id}')">🎤 押して発音する</button>
+                            <div class="jp-text">🇯🇵 ${jpText}</div>
+                            
+                            <div class="feedback-container">
+                                <span class="feedback-label">あなたの声</span>
+                                <div class="feedback-text" id="feedback-${id}">---</div>
+                            </div>
+                            
+                            <button class="speak-btn" onclick="check('${enText.replace(/'/g, "\\'")}', '${id}')">🎤 押して発音チェック</button>
                             <div class="score-display" id="score-${id}"></div>
                             <div class="status-msg" id="status-${id}"></div>
                         </div>`;
                 }
-                container.innerHTML += `<div class="practice-card">${ytIcon}<span class="title">${title}</span>${phrasesHtml}</div>`;
+                container.innerHTML += `<div class="practice-card">${ytIcon}<span class="card-title">${title}</span>${phrasesHtml}</div>`;
             });
         }
 
@@ -107,7 +140,7 @@
             
             const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
             recognition.lang = 'en-US';
-            status.innerText = "聴いています... 話してください！";
+            status.innerText = "聴いていますよ！ゆっくり話してね";
 
             recognition.onresult = (event) => {
                 const speech = event.results[0][0].transcript;
@@ -116,7 +149,7 @@
                 const tWords = target.split(/\s+/);
                 const sWords = clean(speech).split(/\s+/);
                 
-                feedback.innerHTML = `あなたの声: "<span style="color:#fff">${speech}</span>"`;
+                feedback.innerHTML = `"${speech}"`;
                 
                 let correctCount = 0;
                 let resultHtml = "";
@@ -135,12 +168,12 @@
                 scoreDisp.innerText = `${score}点`;
 
                 if (score === 100) {
-                    status.innerText = "✨ 完璧です！素晴らしい！";
+                    status.innerText = "✨ 完璧！天才ですね！";
                     confetti({ particleCount: 150, spread: 70, origin: { y: 0.7 } });
                 } else if (score >= 60) {
-                    status.innerText = "👍 おしい！あと少し！";
+                    status.innerText = "😊 いい感じ！あと一歩！";
                 } else {
-                    status.innerText = "💪 もう一度やってみよう！";
+                    status.innerText = "🔥 どんまい！もう一度挑戦！";
                 }
             };
             recognition.start();
