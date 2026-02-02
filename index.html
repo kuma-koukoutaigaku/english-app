@@ -1,83 +1,146 @@
 <!DOCTYPE html>
-<html>
+<html lang="ja">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>English Practice App</title>
+    <title>英語発音マスター 🔥</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         :root { --main: #FF0000; --bg: #0f0f0f; --card: #282828; --btn: #3f3f3f; --accent: #00ff88; --yt: #ff0000; }
         body { font-family: sans-serif; background: var(--bg); color: white; margin: 0; padding: 15px; }
+        .menu-container { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 15px; margin-bottom: 20px; border-bottom: 1px solid var(--btn); }
+        .date-tab { background: var(--btn); color: white; border: none; padding: 8px 15px; border-radius: 20px; cursor: pointer; white-space: nowrap; }
+        .date-tab.active { background: var(--main); font-weight: bold; }
         .practice-card { background: var(--card); border-radius: 15px; padding: 20px; margin-bottom: 25px; border-left: 5px solid var(--main); position: relative; }
         .yt-link { position: absolute; top: 15px; right: 15px; color: var(--yt); font-size: 1.8rem; text-decoration: none; }
         .title { font-size: 1.2rem; font-weight: bold; margin-bottom: 15px; display: block; padding-right: 40px; }
         .phrase-item { margin-bottom: 15px; background: #1a1a1a; padding: 15px; border-radius: 10px; }
-        button { width: 100%; background: var(--btn); color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px; }
-        .status { margin-top: 10px; font-size: 0.9rem; color: #ccc; }
-        .diff-correct { color: var(--accent); font-weight: bold; }
-        .diff-error { color: #ff4444; text-decoration: line-through; margin-right: 5px; }
+        .jp-text { color: #ffca28; font-size: 0.95rem; margin-bottom: 8px; font-weight: bold; }
+        .feedback-text { font-size: 0.85rem; color: #aaa; margin-bottom: 5px; }
+        .target-phrase { font-size: 1.25rem; line-height: 1.4; margin-bottom: 10px; }
+        .correct { color: var(--accent); font-weight: bold; }
+        .error { color: #ff4444; text-decoration: underline; font-weight: bold; }
+        button.speak-btn { width: 100%; background: var(--main); color: white; border: none; padding: 15px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 1rem; }
+        .score-display { text-align: right; font-size: 1.3rem; font-weight: bold; color: var(--accent); margin-top: 5px; }
+        .status-msg { margin-top: 8px; font-size: 0.9rem; text-align: center; color: #bbb; }
     </style>
 </head>
 <body>
-    <h2 style="text-align:center;">English Practice 🔥</h2>
+    <h2 style="text-align:center;">英語発音マスター 🔥</h2>
+    <div id="dateMenu" class="menu-container"></div>
     <div id="content">データを読み込んでいます...</div>
 
     <script>
-        // ★ここにスプレッドシートからコピーしたCSVのURLを貼り付けて！
+        // ★ここに自分のCSVリンクを貼り付けて！
         const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRAWmRJRNgjq3OtDdRPDvf3uXywGfHW6_saJSkox9Q0jHOUrg9RzjYCMcCeB8r5aesQUPJo1p1Lvbbm/pub?gid=0&single=true&output=csv';
+        let allData = [];
 
         async function loadData() {
-            const container = document.getElementById('content');
             try {
                 const response = await fetch(csvUrl);
-                const csvData = await response.text();
-                const rows = csvData.split('\n').map(row => row.split(','));
-
-                container.innerHTML = '';
-                // 2行目から読み込み
-                for (let i = 1; i < rows.length; i++) {
-                    const row = rows[i];
-                    if (row.length < 3 || (!row[1] && !row[2])) continue;
-
-                    const title = row[1] || "No Title";
-                    const youtubeUrl = row[7] || null;
-                    const ytIcon = youtubeUrl && youtubeUrl.includes('http') ? `<a href="${youtubeUrl}" target="_blank" class="yt-link">📺</a>` : '';
-
-                    let phrases = '';
-                    // C列(2)〜G列(6)をループ
-                    for (let j = 2; j <= 6; j++) {
-                        const text = row[j] ? row[j].trim() : "";
-                        if (text.length < 2) continue;
-                        const id = `s-${i}-${j}`;
-                        phrases += `<div class="phrase-item"><div>${text}</div><button onclick="check('${text.replace(/'/g, "\\'")}', '${id}')">🎤 Speak</button><div class="status" id="${id}"></div></div>`;
-                    }
-
-                    container.innerHTML += `<div class="practice-card">${ytIcon}<span class="title">${title}</span>${phrases}</div>`;
-                }
+                const csvString = await response.text();
+                // 改行とカンマで分解
+                allData = csvString.split(/\r?\n/).map(row => row.split(','));
+                createMenu();
             } catch (e) {
-                container.innerHTML = 'データの読み込みに失敗しました。公開設定を確認してください。';
+                document.getElementById('content').innerHTML = 'エラー: スプレッドシートの公開設定を確認してください。';
             }
         }
 
+        function createMenu() {
+            const menu = document.getElementById('dateMenu');
+            // A列の日付を取得
+            const dates = [...new Set(allData.slice(1).map(r => r[0]))].filter(d => d && d.trim() !== "");
+            menu.innerHTML = '';
+            dates.forEach(date => {
+                const btn = document.createElement('button');
+                btn.className = 'date-tab';
+                btn.innerText = date;
+                btn.onclick = () => {
+                    document.querySelectorAll('.date-tab').forEach(t => t.classList.remove('active'));
+                    btn.classList.add('active');
+                    showByDate(date);
+                };
+                menu.appendChild(btn);
+            });
+            // 最新の日付を自動クリック
+            if(menu.lastChild) menu.lastChild.click();
+        }
+
+        function showByDate(targetDate) {
+            const container = document.getElementById('content');
+            container.innerHTML = '';
+            const filteredRows = allData.filter(row => row[0] === targetDate);
+
+            filteredRows.forEach((row, i) => {
+                const title = row[1] || "タイトルなし";
+                const youtubeUrl = row[12] ? row[12].trim() : null;
+                const ytIcon = youtubeUrl && youtubeUrl.startsWith('http') ? `<a href="${youtubeUrl}" target="_blank" class="yt-link">📺</a>` : '';
+
+                let phrasesHtml = '';
+                // 英語(C,E,G,I,K) と 日本語(D,F,H,J,L) のペアを読み込む
+                for (let j = 2; j <= 10; j += 2) {
+                    const enText = row[j] ? row[j].trim() : "";
+                    const jpText = row[j+1] ? row[j+1].trim() : "";
+                    if (enText.length < 2) continue;
+                    
+                    const id = `phrase-${i}-${j}`;
+                    phrasesHtml += `
+                        <div class="phrase-item">
+                            <div class="jp-text">💡 ${jpText}</div>
+                            <div class="feedback-text" id="feedback-${id}">あなたの声: ---</div>
+                            <div class="target-phrase" id="display-${id}">${enText}</div>
+                            <button class="speak-btn" onclick="check('${enText.replace(/'/g, "\\'")}', '${id}')">🎤 押して発音する</button>
+                            <div class="score-display" id="score-${id}"></div>
+                            <div class="status-msg" id="status-${id}"></div>
+                        </div>`;
+                }
+                container.innerHTML += `<div class="practice-card">${ytIcon}<span class="title">${title}</span>${phrasesHtml}</div>`;
+            });
+        }
+
         function check(target, id) {
-            const status = document.getElementById(id);
+            const display = document.getElementById(`display-${id}`);
+            const feedback = document.getElementById(`feedback-${id}`);
+            const status = document.getElementById(`status-${id}`);
+            const scoreDisp = document.getElementById(`score-${id}`);
+            
             const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
             recognition.lang = 'en-US';
-            status.innerHTML = "聴いています...";
+            status.innerText = "聴いています... 話してください！";
+
             recognition.onresult = (event) => {
                 const speech = event.results[0][0].transcript;
                 const clean = (s) => s.toLowerCase().replace(/[.!?,]/g, "").trim();
-                const tWords = clean(target).split(/\s+/);
+                
+                const tWords = target.split(/\s+/);
                 const sWords = clean(speech).split(/\s+/);
-                let diff = "";
-                tWords.forEach(w => {
-                    diff += sWords.includes(w) ? `<span class="diff-correct">${w}</span> ` : `<span class="diff-error">${w}</span> `;
+                
+                feedback.innerHTML = `あなたの声: "<span style="color:#fff">${speech}</span>"`;
+                
+                let correctCount = 0;
+                let resultHtml = "";
+                tWords.forEach(word => {
+                    const isCorrect = sWords.includes(clean(word));
+                    if (isCorrect) {
+                        correctCount++;
+                        resultHtml += `<span class="correct">${word}</span> `;
+                    } else {
+                        resultHtml += `<span class="error">${word}</span> `;
+                    }
                 });
-                if (clean(target) === clean(speech)) {
-                    status.innerHTML = "✅ Perfect!";
+                display.innerHTML = resultHtml;
+
+                const score = Math.round((correctCount / tWords.length) * 100);
+                scoreDisp.innerText = `${score}点`;
+
+                if (score === 100) {
+                    status.innerText = "✨ 完璧です！素晴らしい！";
                     confetti({ particleCount: 150, spread: 70, origin: { y: 0.7 } });
+                } else if (score >= 60) {
+                    status.innerText = "👍 おしい！あと少し！";
                 } else {
-                    status.innerHTML = `<div>You: "${speech}"</div><div>Check: ${diff}</div>`;
+                    status.innerText = "💪 もう一度やってみよう！";
                 }
             };
             recognition.start();
