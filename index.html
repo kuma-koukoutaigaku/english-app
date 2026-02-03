@@ -20,7 +20,8 @@
         .stat-label { font-size: 0.7rem; color: #888; display: block; }
         .stat-value { font-size: 1.1rem; font-weight: 900; color: var(--secondary); }
 
-        .menu-container { display: flex; gap: 8px; overflow-x: auto; padding: 10px 0; }
+        /* 日付メニュー：最新が左 */
+        .menu-container { display: flex; gap: 8px; overflow-x: auto; padding: 10px 0; flex-direction: row; }
         .date-tab { background: #fff; border: 1px solid #ddd; padding: 10px 18px; border-radius: 20px; cursor: pointer; white-space: nowrap; font-weight: bold; color: #666; }
         .date-tab.active { background: var(--secondary); color: white; border-color: var(--secondary); }
 
@@ -33,17 +34,19 @@
         .yt-video-title { font-size: 1rem; font-weight: bold; margin-top: 5px; display: block; color: #333; }
 
         .phrase-item { margin-bottom: 40px; position: relative; }
-        .jp-text { color: #1a1a1a; font-size: 1.3rem; font-weight: 800; margin-bottom: 10px; display: block; }
+        .jp-text { color: #1a1a1a; font-size: 1.2rem; font-weight: 800; margin-bottom: 10px; display: block; }
         
-        .word-tap-area { font-size: 1.3rem; margin-bottom: 15px; line-height: 1.8; }
-        .word-chip { cursor: pointer; padding: 2px 4px; border-radius: 4px; display: inline-block; }
+        .word-tap-area { font-size: 1.4rem; margin-bottom: 15px; line-height: 1.8; }
+        .word-chip { cursor: pointer; padding: 2px 4px; border-radius: 4px; display: inline-block; transition: 0.2s; }
         .word-chip.perfect { color: var(--perfect); font-weight: bold; }
         .word-chip.good { color: var(--good); text-decoration: underline; font-weight: bold; }
-        .word-chip.miss { color: var(--miss); opacity: 0.6; }
+        .word-chip.miss { color: var(--miss); background: rgba(255, 82, 82, 0.1); border-radius: 4px; }
 
-        .voice-section { background: #2d3436; border-radius: 15px; padding: 15px; color: #fff; position: relative; }
-        .voice-text { font-size: 1.1rem; color: #55efc4; font-weight: bold; min-height: 1.4em; }
-        .score-display { position: absolute; top: 10px; right: 10px; font-weight: 900; font-size: 1.2rem; color: #FFD700; }
+        /* 点数を大きく左側に配置 */
+        .voice-section { background: #2d3436; border-radius: 15px; padding: 15px 15px 15px 80px; color: #fff; position: relative; min-height: 60px; }
+        .score-display { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 2.2rem; font-weight: 900; color: #FFD700; text-shadow: 0 2px 4px rgba(0,0,0,0.3); line-height: 1; }
+        .score-unit { font-size: 0.8rem; margin-left: 2px; }
+        .voice-text { font-size: 1.1rem; color: #55efc4; font-weight: bold; display: block; }
 
         .speak-btn { 
             width: 100%; background: var(--primary); color: white; border: none; padding: 18px; 
@@ -77,36 +80,27 @@
     <script>
         const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRAWmRJRNgjq3OtDdRPDvf3uXywGfHW6_saJSkox9Q0jHOUrg9RzjYCMcCeB8r5aesQUPJo1p1Lvbbm/pub?gid=0&single=true&output=csv';
         let allData = [];
-        let myStats = JSON.parse(localStorage.getItem('k_v6_stats') || '{}');
+        let myStats = JSON.parse(localStorage.getItem('k_v7_stats') || '{}');
         let currentOpenDate = "";
 
-        const tips = [
-            "『L』は舌の先を上の前歯の付け根にしっかり押し当てて！",
-            "『R』は舌をどこにも付けずに、喉の奥に引く感じだよ。",
-            "『Th』は前歯で舌を軽く挟んで吹くように発音してみて。",
-            "『V』は上の前歯で下唇を軽く噛むのがコツ！",
-            "『F』は唇を噛むというより、隙間から空気を漏らすイメージ。",
-            "語尾の『T』や『D』を強く言いすぎないように注意しよう。",
-            "『A』の発音は『エ』と『ア』の中間を意識してみてね。",
-            "『O』は『オ』よりも『ア』に近い音が多いよ。",
-            "『W』は口を思いっきりすぼめてから始めよう！",
-            "『Si』は『スィ』、単なる『シ』にならないように気をつけて。",
-            "単語同士を繋げて（リンキング）一気に言うとネイティブっぽいよ。",
-            "アクセント（強く言う場所）を意識すると一気に伝わりやすくなる！",
-            "英語のリズムは強弱が大事。大事な単語以外は弱く早く！",
-            "『B』と『V』の違いを意識して。Bは唇を弾く音！",
-            "『S』の音を出す前に、少しだけ息を漏らすと綺麗になるよ。",
-            "『Z』は喉を震わせる『ズー』という音を意識してみて。",
-            "語尾の『-ing』は『ング』と言いすぎず、鼻に抜ける感じで。",
-            "『E』の音は口を横にしっかり引いて発音してみて！",
-            "最後は自信！大きな声でハッキリ言うのが一番のコツ！",
-            "単語をタップして、お手本の音をもう一度聴いてみよう。"
-        ];
+        // 特徴的な音ごとのアドバイスマップ
+        const phonicsTips = {
+            'l': "『L』の発音！舌の先を上の前歯の付け根に押し当ててみて。",
+            'r': "『R』が惜しい。舌をどこにも付けずに、喉の奥に引くイメージ！",
+            'th': "『Th』は前歯で舌を軽く挟んで、息を吹くように発音して。",
+            'v': "『V』は上の前歯で下唇を軽く噛んで振動させてみて。",
+            'f': "『F』は唇を噛まずに、隙間から空気を漏らす感じだよ。",
+            's': "『S』の息の漏らし方が足りないかも。鋭く『スッ』と出そう。",
+            'sh': "『Sh』は静かにさせる時の『シー』の口を意識して。",
+            'a': "『A』は口を横に広げて『エ』と『ア』の中間を狙おう。",
+            'o': "『O』は日本語の『オ』より少し口を開けて『ア』に近く。",
+            'w': "『W』は口をタコのようにすぼめてから一気に広げて。"
+        };
 
         function updateStats() {
             document.getElementById('dayCount').innerText = myStats[currentOpenDate] || 0;
             const myTotal = Object.values(myStats).reduce((a, b) => a + b, 0);
-            document.getElementById('globalCount').innerText = (1250 + myTotal * 8).toLocaleString();
+            document.getElementById('globalCount').innerText = (1500 + myTotal * 10).toLocaleString();
         }
 
         async function loadData() {
@@ -120,7 +114,16 @@
 
         function createMenu() {
             const menu = document.getElementById('dateMenu');
-            const dates = [...new Set(allData.slice(1).map(r => r[0]))].filter(d => d && d.trim() !== "").sort();
+            const today = new Date();
+            const todayStr = today.getFullYear() + "/" + 
+                            String(today.getMonth() + 1).padStart(2, '0') + "/" + 
+                            String(today.getDate()).padStart(2, '0');
+
+            // 今日以前の日付だけを抽出し、最新順にソート
+            const dates = [...new Set(allData.slice(1).map(r => r[0]))]
+                .filter(d => d && d.trim() !== "" && d <= todayStr)
+                .sort((a, b) => b.localeCompare(a)); 
+
             menu.innerHTML = '';
             dates.forEach(date => {
                 const btn = document.createElement('button');
@@ -135,13 +138,13 @@
                 };
                 menu.appendChild(btn);
             });
-            if(menu.lastChild) menu.lastChild.click();
+            if(menu.firstChild) menu.firstChild.click();
         }
 
         function playWord(text) {
             const uttr = new SpeechSynthesisUtterance(text);
             uttr.lang = 'en-US';
-            uttr.rate = 0.8;
+            uttr.rate = 0.85;
             window.speechSynthesis.speak(uttr);
         }
 
@@ -150,9 +153,8 @@
             container.innerHTML = '';
             const filteredRows = allData.filter(row => row[0] === targetDate);
             filteredRows.forEach((row, i) => {
-                const videoTitle = row[1] || "本日のレッスン";
+                const videoTitle = row[1] || "英会話レッスン";
                 const youtubeUrl = row[12] || "#";
-                
                 let phrasesHtml = '';
                 for (let j = 2; j <= 10; j += 2) {
                     const en = row[j]?.trim();
@@ -166,24 +168,21 @@
                             <span class="jp-text">${jp}</span>
                             <div class="word-tap-area" id="area-${id}">${wordChips}</div>
                             <div class="voice-section">
-                                <div class="voice-text" id="feedback-${id}">...</div>
                                 <div class="score-display" id="score-${id}"></div>
+                                <div class="voice-text" id="feedback-${id}">...</div>
                             </div>
                             <button class="speak-btn" id="btn-${id}" onclick="check('${en.replace(/'/g, "\\'")}', '${id}')">🎤 判定スタート</button>
                             <div class="advice-box" id="advice-${id}"></div>
                         </div>`;
                 }
-                container.innerHTML += `
-                    <div class="practice-card">
-                        <div class="yt-area">
-                            <a href="${youtubeUrl}" target="_blank" class="yt-link">
-                                <svg class="yt-icon-svg" viewBox="0 0 24 24"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/></svg>
-                                <span class="yt-sub-text">この動画をショート動画で見る</span>
-                                <span class="yt-video-title">${videoTitle}</span>
-                            </a>
-                        </div>
-                        ${phrasesHtml}
-                    </div>`;
+                container.innerHTML += `<div class="practice-card">
+                    <div class="yt-area">
+                        <a href="${youtubeUrl}" target="_blank" class="yt-link">
+                            <svg class="yt-icon-svg" viewBox="0 0 24 24"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/></svg>
+                            <span class="yt-sub-text">この動画をショート動画で見る</span>
+                            <span class="yt-video-title">${videoTitle}</span>
+                        </a>
+                    </div>${phrasesHtml}</div>`;
             });
         }
 
@@ -196,7 +195,7 @@
             
             btn.innerText = "聴いています...";
             myStats[currentOpenDate] = (myStats[currentOpenDate] || 0) + 1;
-            localStorage.setItem('k_v6_stats', JSON.stringify(myStats));
+            localStorage.setItem('k_v7_stats', JSON.stringify(myStats));
             updateStats();
 
             const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
@@ -211,9 +210,9 @@
                 const tWords = target.split(/\s+/);
                 const sWords = speech.toLowerCase().replace(/[.!?,]/g, "").split(/\s+/);
                 
-                let correctPoints = 0;
+                let correctCount = 0;
                 let resultHtml = "";
-                let hasOrange = false;
+                let missedChars = "";
 
                 tWords.forEach(word => {
                     const cleanW = word.toLowerCase().replace(/[.!?,]/g, "");
@@ -221,31 +220,33 @@
                     let cls = "miss";
                     
                     if(isCorrect) {
-                        // 自信度が低い、または発音が曖昧ならオレンジ
-                        if(conf < 0.90) { 
-                            cls = "good"; 
-                            hasOrange = true; 
-                            correctPoints += 0.7; 
-                        } else { 
-                            cls = "perfect"; 
-                            correctPoints += 1; 
-                        }
+                        if(conf > 0.92) { cls = "perfect"; correctCount += 1; }
+                        else { cls = "good"; correctCount += 0.8; }
+                    } else {
+                        missedChars += cleanW; // 言えなかった単語の文字を蓄積
                     }
                     resultHtml += `<span class="word-chip ${cls}" onclick="playWord('${word.replace(/'/g,"")}')">${word}</span> `;
                 });
                 area.innerHTML = resultHtml;
 
-                const finalScore = Math.round((correctPoints / tWords.length) * 100);
-                scoreDisp.innerText = finalScore + "点";
-                
-                // 判定ロジック：100点かつオレンジ無しならパーフェクト
-                if(finalScore >= 95 && !hasOrange) {
+                const finalScore = Math.round((correctCount / tWords.length) * 100);
+                scoreDisp.innerHTML = finalScore + '<span class="score-unit">点</span>';
+                scoreDisp.style.color = finalScore >= 90 ? "#00C853" : (finalScore >= 60 ? "#FF9800" : "#FF5252");
+
+                if(finalScore >= 95) {
                     advice.style.display = "none";
                     confetti();
                 } else {
-                    // 100点じゃなかったり、オレンジが混ざってたらアドバイス
+                    // 失敗した単語に含まれる文字からアドバイスを選定
+                    let selectedTip = "お手本の単語をタップして、音の違いを確認してみて！";
+                    for (let key in phonicsTips) {
+                        if (missedChars.includes(key)) {
+                            selectedTip = phonicsTips[key];
+                            break;
+                        }
+                    }
                     advice.style.display = "block";
-                    advice.innerHTML = `<b>💡 アドバイス：</b><br>${tips[Math.floor(Math.random() * tips.length)]}`;
+                    advice.innerHTML = `<b>💡 アドバイス：</b><br>${selectedTip}`;
                 }
             };
             recognition.onerror = () => { btn.innerText = "もう一度！"; };
