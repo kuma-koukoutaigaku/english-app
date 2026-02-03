@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>高校退学教師のK高等学校</title>
+    <title>高校退学教師のK高等学校 - 完全版</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@700&display=swap');
@@ -12,77 +12,41 @@
             --perfect: #00C853; --miss: #FF5252;
         }
         body { font-family: 'Helvetica Neue', Arial, sans-serif; background: var(--bg); color: #333; margin: 0; padding: 15px; padding-bottom: 50px; }
-        
         .header-area { text-align: center; margin-bottom: 20px; }
         .main-title { font-family: 'Noto Serif JP', serif; font-size: 1.5rem; color: var(--secondary); margin: 10px 0; border-bottom: 3px solid var(--primary); display: inline-block; }
-        
-        /* 統計エリア */
         .stats-bar { background: #fff; border-radius: 12px; padding: 10px; margin-bottom: 15px; display: flex; justify-content: space-around; font-size: 0.9rem; font-weight: bold; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
         .stat-item { color: var(--secondary); }
-
-        /* YouTubeエリア */
         .yt-area { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 15px; }
         .yt-link { text-decoration: none; color: #333; display: block; }
         .yt-icon { width: 45px; height: 45px; fill: #FF0000; display: block; margin: 0 auto 5px; }
         .yt-sub-text { font-size: 0.75rem; color: #FF0000; font-weight: bold; display: block; }
         .yt-video-title { font-size: 1rem; font-weight: bold; margin-top: 5px; color: var(--secondary); }
-
-        /* メニュー */
         .menu-container { display: flex; gap: 8px; overflow-x: auto; padding: 10px 0; margin-bottom: 10px; }
         .date-tab { background: #fff; border: 1px solid #ddd; padding: 10px 18px; border-radius: 20px; cursor: pointer; white-space: nowrap; font-weight: bold; color: #666; }
         .date-tab.active { background: var(--secondary); color: white; border-color: var(--secondary); }
-
-        /* 練習カード */
         .practice-card { background: white; border-radius: 24px; padding: 20px; margin-bottom: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
         .phrase-item { margin-bottom: 40px; position: relative; }
         .jp-text { color: #1a1a1a; font-size: 1.2rem; font-weight: 800; margin-bottom: 10px; display: block; }
-        
         .word-tap-area { font-size: 1.4rem; margin-bottom: 15px; line-height: 1.8; }
         .word-chip { cursor: pointer; padding: 2px 4px; border-radius: 4px; display: inline-block; transition: 0.2s; border-bottom: 1px dashed #ccc; }
         .word-chip.perfect { color: var(--perfect); font-weight: bold; border-bottom: none; }
         .word-chip.miss { color: var(--miss); background: rgba(255, 82, 82, 0.1); font-weight: bold; border-bottom: 2px solid var(--miss); }
-
-        /* 音声認識エリア */
         .voice-section { background: #2d3436; border-radius: 15px; padding: 15px; color: #fff; position: relative; min-height: 60px; }
         .voice-label { font-size: 0.75rem; color: #aaa; display: block; margin-bottom: 5px; }
         .voice-text { font-size: 1.1rem; color: #55efc4; font-weight: bold; padding-right: 110px; line-height: 1.3; }
-        
         .score-display { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); text-align: center; width: 100px; }
         .score-val { font-size: 1.7rem; font-weight: 900; display: block; line-height: 1; }
-        .score-status { font-size: 0.7rem; font-weight: bold; margin-top: 3px; display: block; }
-
-        /* 録音ボタンとアニメーション */
-        .speak-btn { 
-            width: 100%; background: var(--primary); color: white; border: none; padding: 18px; 
-            border-radius: 35px; cursor: pointer; font-weight: bold; font-size: 1.2rem; margin-top: 15px;
-            box-shadow: 0 6px 0 #E68A00; transition: all 0.3s ease;
-        }
-        .speak-btn.recording {
-            background: #d63031 !important;
-            box-shadow: 0 4px 0 #962121;
-            animation: pulse-ring 1.25s infinite;
-        }
-        @keyframes pulse-ring {
-            0% { box-shadow: 0 0 0 0 rgba(214, 48, 49, 0.7); }
-            70% { box-shadow: 0 0 0 15px rgba(214, 48, 49, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(214, 48, 49, 0); }
-        }
-
+        .score-status { font-size: 0.65rem; font-weight: bold; margin-top: 3px; display: block; }
+        .speak-btn { width: 100%; background: var(--primary); color: white; border: none; padding: 18px; border-radius: 35px; cursor: pointer; font-weight: bold; font-size: 1.2rem; margin-top: 15px; box-shadow: 0 6px 0 #E68A00; }
+        .speak-btn.recording { background: #d63031 !important; animation: pulse-ring 1.25s infinite; }
+        @keyframes pulse-ring { 0% { box-shadow: 0 0 0 0 rgba(214, 48, 49, 0.7); } 70% { box-shadow: 0 0 0 15px rgba(214, 48, 49, 0); } 100% { box-shadow: 0 0 0 0 rgba(214, 48, 49, 0); } }
         .advice-box { margin-top: 12px; background: #fff9db; padding: 15px; border-radius: 12px; font-size: 0.85rem; border-left: 5px solid #fcc419; display: none; color: #333; line-height: 1.5; }
         .guide-text { font-size: 0.8rem; color: #888; text-align: center; margin-bottom: 10px; }
     </style>
 </head>
 <body>
-
-    <div class="header-area">
-        <h1 class="main-title">高校退学教師のK高等学校</h1>
-    </div>
-
-    <div class="stats-bar">
-        <div class="stat-item">🔥 本日の挑戦: <span id="totalCount">0</span>回</div>
-        <div class="stat-item">🏆 合格数: <span id="passCount">0</span>個</div>
-    </div>
-    
+    <div class="header-area"><h1 class="main-title">高校退学教師のK高等学校</h1></div>
+    <div class="stats-bar"><div class="stat-item">🔥 本日の挑戦: <span id="totalCount">0</span>回</div><div class="stat-item">🏆 合格数: <span id="passCount">0</span>個</div></div>
     <div id="dateMenu" class="menu-container"></div>
     <div class="guide-text">※英単語をタップするとお手本が流れるぜ</div>
     <div id="content">読み込み中...</div>
@@ -93,20 +57,19 @@
         let sessionStats = { total: 0, pass: 0 };
 
         const tips = {
-            'l': "『L』は舌先を上の前歯の裏に強く押し当てて！",
-            'r': "『R』は舌をどこにも触れさせず奥にグッと引こう。",
-            'th': "『Th』は前歯で舌を軽く噛んで隙間から息を出して。",
-            'v': "『V』は下唇を上の歯で軽く押さえて喉を震わせて。",
-            'f': "『F』は上の歯で下唇を軽く押さえて息を漏らして。",
-            's': "『S』は日本語の『ス』より鋭く息を吐き出すイメージ。",
-            'sh': "『Sh』は静かにさせる時の『シー』を強く出す感じ！",
-            't': "語尾の『T』は息だけで『ッ』と止めるのがコツ。",
-            'd': "語尾の『D』は声を出しすぎず軽く弾く程度でOK。",
-            'w': "『W』は口を思いっきり突き出してから始めよう。",
-            'a': "『A』は口を横に引きながら『ア』と『エ』の間を狙って。",
-            'o': "『O』は口を縦に開けて喉の奥から音を出してみて。",
-            'z': "『Z』は蜂が飛ぶような『ズーー』という振動を意識！"
+            'l': "『L』は舌先を上の前歯の裏に強く押し当てて弾いて！", 'r': "『R』は舌をどこにも触れさせず、奥にグッと引こう。",
+            'th': "『Th』は前歯で舌を軽く噛んで、隙間から息を出すのが正解。", 'v': "『V』は下唇を上の歯で軽く押さえて、喉を震わせてみて。",
+            'f': "『F』は唇を噛まず、上の歯と下唇の間から息を漏らして。", 's': "『S』は日本語の『ス』より鋭く、長く息を吐き出すイメージ。",
+            'sh': "『Sh』は静かにさせる時の『シー』をもっと強く出す感じ！", 't': "語尾の『T』は『ト』と言わず、息だけで『ッ』と止めて。",
+            'd': "語尾の『D』は声を出しすぎず、軽く弾く程度でOK。", 'w': "『W』は口を思いっきり突き出してから始めると伝わるよ。",
+            'a': "『A』は口を横に引きながら『ア』と『エ』を同時に出す感じ。", 'o': "『O』は口を縦に開けて、喉の奥から音を出してみて。",
+            'i': "『I』は口を横に引き、短くハッキリ発音しよう。", 'u': "『U』は日本語の『ウ』より少しリラックスして出そう。",
+            'z': "『Z』は蜂が飛ぶような『ズーー』という振動を意識！", 'y': "『Y』は少し『イ』を混ぜるように、粘っこく出してみよう。",
+            'g': "『G』は喉の奥を塞いでから一気に開放するイメージ。", 'ae': "『æ』の音は、驚いた時の『アッ』に近い口の形だよ。",
+            'n': "語尾の『N』は舌を上顎にべったりつけて音を止めて。", 'm': "語尾の『M』は唇をしっかり閉じて鼻から音を抜こう。"
         };
+
+        const scoreMsgs = ["不合格！やり直し","声が小さい？","もっと練習！","基礎を固めよう","カタカナっぽい","半分正解！","いい感じ！","合格まであと少し","ほぼ完璧！","合格！すごい！","伝説級！神！"];
 
         async function loadData() {
             try {
@@ -119,144 +82,64 @@
 
         function createMenu() {
             const menu = document.getElementById('dateMenu');
-            const todayStr = new Date().toISOString().split('T')[0].replace(/-/g, '/');
-            
-            // 未来の日付を除外してソート
-            const dates = [...new Set(allData.slice(1).map(r => r[0]))]
-                .filter(d => d && d <= todayStr) 
-                .sort((a, b) => b.localeCompare(a));
-
+            const todayStr = new Date().toLocaleDateString('ja-JP', {year:'numeric',month:'2-digit',day:'2-digit'}).split('/').join('/');
+            const dates = [...new Set(allData.slice(1).map(r => r[0]))].filter(d => d && d <= todayStr).sort((a, b) => b.localeCompare(a));
             menu.innerHTML = '';
             dates.forEach(date => {
-                const btn = document.createElement('button');
-                btn.className = 'date-tab';
-                btn.innerText = date;
-                btn.onclick = () => {
-                    document.querySelectorAll('.date-tab').forEach(t => t.classList.remove('active'));
-                    btn.classList.add('active');
-                    showContent(date);
-                };
+                const btn = document.createElement('button'); btn.className = 'date-tab'; btn.innerText = date;
+                btn.onclick = () => { document.querySelectorAll('.date-tab').forEach(t => t.classList.remove('active')); btn.classList.add('active'); showContent(date); };
                 menu.appendChild(btn);
             });
             if(menu.firstChild) menu.firstChild.click();
         }
 
         function showContent(date) {
-            const container = document.getElementById('content');
-            container.innerHTML = '';
+            const container = document.getElementById('content'); container.innerHTML = '';
             const rows = allData.filter(r => r[0] === date);
             rows.forEach((row, i) => {
-                const title = row[1] || "本日のレッスン";
-                const yt = row[12] || "#";
-                let phs = '';
+                const title = row[1] || "本日のレッスン"; const yt = row[12] || "#"; let phs = '';
                 for (let j = 2; j <= 10; j += 2) {
-                    const en = row[j]?.trim();
-                    const jp = row[j+1]?.trim();
-                    if (!en || en.length < 2) continue;
+                    const en = row[j]?.trim(); const jp = row[j+1]?.trim(); if (!en || en.length < 2) continue;
                     const id = `p-${i}-${j}`;
-                    phs += `
-                        <div class="phrase-item">
-                            <span class="jp-text">${jp}</span>
-                            <div class="word-tap-area" id="area-${id}">
-                                ${en.split(' ').map(w => `<span class="word-chip" onclick="speak('${w.replace(/'/g,"")}')">${w}</span>`).join(' ')}
-                            </div>
-                            <div class="voice-section">
-                                <span class="voice-label">キミの英語</span>
-                                <div class="voice-text" id="fb-${id}">...</div>
-                                <div class="score-display" id="sc-${id}"></div>
-                            </div>
-                            <button class="speak-btn" id="btn-${id}" onclick="check('${en.replace(/'/g,"\\'")}', '${id}')">🎤 判定スタート</button>
-                            <div class="advice-box" id="ad-${id}"></div>
-                        </div>`;
+                    phs += `<div class="phrase-item"><span class="jp-text">${jp}</span><div class="word-tap-area" id="area-${id}">${en.split(' ').map(w => `<span class="word-chip" onclick="speak('${w.replace(/'/g,"")}')">${w}</span>`).join(' ')}</div><div class="voice-section"><span class="voice-label">キミの英語</span><div class="voice-text" id="fb-${id}">...</div><div class="score-display" id="sc-${id}"></div></div><button class="speak-btn" id="btn-${id}" onclick="check('${en.replace(/'/g,"\\'")}', '${id}')">🎤 判定スタート</button><div class="advice-box" id="ad-${id}"></div></div>`;
                 }
-                container.innerHTML += `
-                    <div class="practice-card">
-                        <div class="yt-area">
-                            <a href="${yt}" target="_blank" class="yt-link">
-                                <svg class="yt-icon" viewBox="0 0 24 24"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/></svg>
-                                <span class="yt-sub-text">この動画をショート動画で見る</span>
-                                <span class="yt-video-title">${title}</span>
-                            </a>
-                        </div>
-                        ${phs}
-                    </div>`;
+                container.innerHTML += `<div class="practice-card"><div class="yt-area"><a href="${yt}" target="_blank" class="yt-link"><svg class="yt-icon" viewBox="0 0 24 24"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/></svg><span class="yt-sub-text">この動画をショート動画で見る</span><span class="yt-video-title">${title}</span></a></div>${phs}</div>`;
             });
         }
 
-        function speak(t) {
-            const u = new SpeechSynthesisUtterance(t);
-            u.lang = 'en-US';
-            u.rate = 0.9;
-            window.speechSynthesis.speak(u);
-        }
-
-        function updateStats(isPass) {
-            sessionStats.total++;
-            if(isPass) sessionStats.pass++;
-            document.getElementById('totalCount').innerText = sessionStats.total;
-            document.getElementById('passCount').innerText = sessionStats.pass;
-        }
+        function speak(t) { const u = new SpeechSynthesisUtterance(t); u.lang = 'en-US'; u.rate = 0.85; window.speechSynthesis.speak(u); }
 
         function check(target, id) {
-            const btn = document.getElementById(`btn-${id}`);
-            const fb = document.getElementById(`fb-${id}`);
-            const area = document.getElementById(`area-${id}`);
-            const scArea = document.getElementById(`sc-${id}`);
-            const ad = document.getElementById(`ad-${id}`);
-
-            btn.classList.add('recording');
-            btn.innerText = "録音中...";
-
-            const rec = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-            rec.lang = 'en-US';
-
+            const btn = document.getElementById(`btn-${id}`); const fb = document.getElementById(`fb-${id}`);
+            const area = document.getElementById(`area-${id}`); const scArea = document.getElementById(`sc-${id}`); const ad = document.getElementById(`ad-${id}`);
+            btn.classList.add('recording'); btn.innerText = "聞いています...どうぞ！";
+            const rec = new (window.SpeechRecognition || window.webkitSpeechRecognition)(); rec.lang = 'en-US';
             rec.onresult = (e) => {
-                btn.classList.remove('recording');
-                btn.innerText = "🎤 判定スタート";
-                
-                const speech = e.results[0][0].transcript;
-                fb.innerText = speech;
-                
+                btn.classList.remove('recording'); btn.innerText = "🎤 判定スタート";
+                const result = e.results[0][0]; const speech = result.transcript; fb.innerText = speech;
                 const sWords = speech.toLowerCase().replace(/[.!?,]/g, "").split(/\s+/);
-                const tWords = target.split(/\s+/);
-                let correct = 0;
-                let html = "";
-                let missedChars = "";
-                
+                const tWords = target.split(/\s+/); let correctCount = 0; let html = ""; let missedChars = "";
                 tWords.forEach(w => {
                     const cleanW = w.toLowerCase().replace(/[.!?,]/g, "");
-                    if(sWords.includes(cleanW)) {
-                        html += `<span class="word-chip perfect" onclick="speak('${w.replace(/'/g,"")}')">${w}</span> `;
-                        correct++;
-                    } else {
-                        html += `<span class="word-chip miss" onclick="speak('${w.replace(/'/g,"")}')">${w}</span> `;
-                        missedChars += cleanW;
-                    }
+                    if(sWords.includes(cleanW)) { html += `<span class="word-chip perfect" onclick="speak('${w}')">${w}</span> `; correctCount++; }
+                    else { html += `<span class="word-chip miss" onclick="speak('${w}')">${w}</span> `; missedChars += cleanW; }
                 });
                 area.innerHTML = html;
-
-                const score = Math.round((correct / tWords.length) * 100);
-                const isPass = score >= 90;
-                updateStats(isPass);
-
-                const color = isPass ? "#00C853" : "#FF5252";
-                scArea.innerHTML = `<span class="score-val" style="color:${color}">${score}点</span><span class="score-status" style="color:${color}">${isPass ? '合格！' : '不合格'}</span>`;
-                
-                if(isPass) { 
-                    confetti(); 
-                    ad.style.display="none"; 
-                } else {
-                    let tip = "<b>赤色の単語をタップ</b>してお手本を聴いてみて！";
+                const extra = Math.max(0, sWords.length - tWords.length);
+                let score = Math.round((correctCount / tWords.length) * 100) - (extra * 10);
+                if (score < 0) score = 0;
+                sessionStats.total++; if(score >= 95) sessionStats.pass++;
+                document.getElementById('totalCount').innerText = sessionStats.total; document.getElementById('passCount').innerText = sessionStats.pass;
+                const color = score >= 95 ? "#00C853" : "#FF5252";
+                scArea.innerHTML = `<span class="score-val" style="color:${color}">${score}点</span><span class="score-status" style="color:${color}">${scoreMsgs[Math.floor(score/10)] || scoreMsgs[0]}</span>`;
+                if(score >= 95) { confetti(); ad.style.display="none"; }
+                else {
+                    let tip = `<b>${extra > 0 ? '余計な単語を拾ったぜ！<br>' : ''}赤色の単語をタップ</b>してお手本を聴こう。`;
                     for(let k in tips) { if(missedChars.includes(k)) { tip += `<br>💡コツ：${tips[k]}`; break; } }
-                    ad.innerHTML = tip;
-                    ad.style.display="block";
+                    ad.innerHTML = tip; ad.style.display="block";
                 }
             };
-
-            rec.onerror = () => {
-                btn.classList.remove('recording');
-                btn.innerText = "失敗！もう一度";
-            };
+            rec.onerror = () => { btn.classList.remove('recording'); btn.innerText = "失敗（もう一度）"; };
             rec.start();
         }
         loadData();
