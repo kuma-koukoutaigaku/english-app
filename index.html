@@ -68,9 +68,7 @@
             }
         };
 
-        function formatDateNum(dateStr) {
-            return dateStr.replace(/\D/g, ''); // 数字以外をすべて削除
-        }
+        function formatDateNum(dateStr) { return dateStr.replace(/\D/g, ''); }
 
         async function init() {
             stats.save();
@@ -79,17 +77,14 @@
                 const text = await res.text();
                 const now = new Date();
                 const currentHour = now.getHours();
-                
-                // 今日の日付を「20260203」形式にする
                 const todayNum = `${now.getFullYear()}${(now.getMonth()+1).toString().padStart(2,'0')}${now.getDate().toString().padStart(2,'0')}`;
                 
-                allData = text.split(/\r?\n/).filter(line => line.includes(',')).map(r => r.split(','));
+                // CSVパース（カンマ区切り。ただし引用符内のカンマは無視）
+                allData = text.split(/\r?\n/).map(line => line.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g) || []);
                 
                 const filteredRows = allData.slice(1).filter(r => {
-                    const rowDateStr = r[0] ? r[0].trim() : "";
-                    if (!rowDateStr) return false;
-                    const rowDateNum = formatDateNum(rowDateStr);
-                    // 18時制限の比較
+                    if (!r[0]) return false;
+                    const rowDateNum = formatDateNum(r[0]);
                     return (rowDateNum < todayNum) || (rowDateNum === todayNum && currentHour >= 18);
                 });
 
@@ -97,7 +92,7 @@
                 const menu = document.getElementById('dateMenu');
                 
                 if (dates.length === 0) {
-                    document.getElementById('content').innerHTML = "<p style='text-align:center; padding:30px;'>18時まで待機中...<br>過去の問題は出てるかな？</p>";
+                    document.getElementById('content').innerHTML = "<p style='text-align:center; padding:30px;'>18時まで待機中...<br>またはデータが見つかりません</p>";
                     return;
                 }
 
@@ -118,21 +113,23 @@
         function render(date) {
             const container = document.getElementById('content');
             container.innerHTML = '';
-            // 数字のみで比較
-            const targetDateNum = formatDateNum(date);
-            const targetRows = allData.filter(r => r[0] && formatDateNum(r[0].trim()) === targetDateNum);
+            const targetRows = allData.filter(r => r[0] && r[0].trim() === date);
             
             targetRows.forEach((row, rowIndex) => {
-                const videoTitle = row[1] || "英会話レッスン";
-                const videoLink = row[11] || "#";
+                const videoTitle = row[1]?.replace(/"/g,'') || "英会話レッスン";
+                const videoLink = row[12]?.replace(/"/g,'') || "#"; // M列(12)
+                
+                // C列(2)からK列(10)まで、英語(偶数)・日本語(奇数)のペアでループ
                 for (let j = 2; j <= 10; j += 2) {
-                    const en = row[j]?.trim();
-                    const jp = row[j+1]?.trim();
+                    let en = row[j]?.replace(/"/g,'').trim();
+                    let jp = row[j+1]?.replace(/"/g,'').trim();
                     if (!en || en.length < 2) continue;
-                    const id = `q-${targetDateNum}-${rowIndex}-${j}`;
+                    
+                    const id = `q-${formatDateNum(date)}-${rowIndex}-${j}`;
                     const isCleared = stats.data.passedItems.includes(id);
+                    
                     container.innerHTML += `<div class="practice-card ${isCleared ? 'cleared' : ''}" id="card-${id}">
-                        <div class="card-header"><span class="video-title">📺 ${videoTitle}</span><a href="${videoLink}" target="_blank" class="yt-btn">動画を見る</a></div>
+                        <div class="card-header"><span class="video-title">📺 ${videoTitle}</span><a href="${videoLink}" target="_blank" class="yt-btn">動画</a></div>
                         <div class="phrase-item">
                             <span class="jp-text">${jp}</span>
                             <div class="word-tap-area" id="area-${id}">${en.split(' ').map(w => `<span class="word-chip" data-orig="${w}" onclick="play('${w.replace(/'/g,"")}')">${w}</span>`).join('')}</div>
@@ -158,7 +155,7 @@
             const fb = document.getElementById(`fb-${id}`);
             fb.innerText = "Listening...";
             btn.classList.add('recording');
-            btn.innerText = "判定中...";
+            btn.innerText = "停止して判定";
             recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
             recognition.lang = 'en-US';
             recognition.interimResults = true;
@@ -206,18 +203,17 @@
             document.getElementById(`val-${id}`).innerText = score;
 
             const ad = document.getElementById(`ad-${id}`);
-            if (score >= 90) { // 90点以上で合格
+            if (score >= 90) { 
                 stats.addPass(id);
                 document.getElementById(`card-${id}`).classList.add('cleared');
-                ad.innerHTML = "合格！完璧に近いよ！";
+                ad.innerHTML = "合格！";
                 if(score === 100) confetti();
             } else {
-                ad.innerHTML = `不合格（90点必要）。${firstMissedKey ? `<br><b>💡コツ:</b> ${tips[firstMissedKey]}` : "<br>単語が抜けてないかな？"}`;
+                ad.innerHTML = `不合格(90点以上で合格)。${firstMissedKey ? `<br><b>💡コツ:</b> ${tips[firstMissedKey]}` : ""}`;
             }
             ad.style.display = "block";
             stats.save();
         }
-
         init();
     </script>
 </body>
