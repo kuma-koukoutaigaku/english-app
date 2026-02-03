@@ -16,23 +16,24 @@
         .main-title { font-family: 'Noto Serif JP', serif; font-size: 1.2rem; color: var(--secondary); border-bottom: 3px solid var(--primary); display: inline-block; margin: 10px 0; }
         
         .day-header { text-align: center; margin-bottom: 15px; }
-        .video-title { font-weight: bold; font-size: 1.1rem; color: #333; margin-bottom: 8px; display: block; line-height: 1.4; }
-        .video-link-btn { display: inline-block; background: #ff0000; color: white; text-decoration: none; padding: 6px 14px; border-radius: 20px; font-weight: bold; font-size: 0.8rem; box-shadow: 0 3px 0 #b30000; }
+        .video-title { font-weight: bold; font-size: 1.1rem; color: #333; margin-bottom: 10px; display: block; line-height: 1.4; }
+        .video-link-btn { display: inline-flex; align-items: center; background: #fff; color: #333; text-decoration: none; padding: 8px 18px; border-radius: 25px; font-weight: bold; font-size: 0.85rem; border: 2px solid #ff0000; transition: 0.2s; }
+        .yt-icon { color: #ff0000; font-size: 1.2rem; margin-right: 8px; }
 
         .stats-bar { background: #fff; border-radius: 12px; padding: 8px 10px; margin: 10px 0; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-        .stats-main { flex-grow: 1; display: flex; justify-content: center; gap: 10px; font-weight: bold; font-size: 0.85rem; white-space: nowrap; }
+        .stats-main { flex-grow: 1; display: flex; justify-content: center; gap: 10px; font-weight: bold; font-size: 0.85rem; }
         .reset-btn { background: #eee; border: none; padding: 5px 8px; border-radius: 4px; color: #999; font-size: 0.6rem; cursor: pointer; }
         
         .menu-container { display: flex; gap: 8px; overflow-x: auto; padding: 5px 0 15px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
         .date-tab { background: #fff; border: 1px solid #ddd; padding: 6px 12px; border-radius: 20px; cursor: pointer; white-space: nowrap; font-size: 0.85rem; }
         .date-tab.active { background: var(--secondary); color: white; border-color: var(--secondary); }
 
-        .practice-card { background: white; border-radius: 20px; padding: 15px; margin-bottom: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); border: 2px solid transparent; }
+        .practice-card { background: white; border-radius: 20px; padding: 18px; margin-bottom: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); border: 2px solid transparent; }
         .practice-card.cleared { border-color: var(--perfect); background: #f0fff4; }
         
-        .jp-text { font-size: 0.9rem; font-weight: 800; margin-bottom: 5px; display: block; color: #666; }
-        .word-tap-area { font-size: 1.3rem; margin-bottom: 12px; line-height: 1.5; font-weight: bold; }
-        .word-chip { cursor: pointer; padding: 2px 1px; display: inline-block; border-bottom: 2px solid #eee; margin-right: 2px; color: #333; }
+        .jp-text { font-size: 1rem; font-weight: 800; margin-bottom: 10px; display: block; color: #444; }
+        .word-tap-area { font-size: 1.4rem; margin-bottom: 15px; line-height: 1.4; font-weight: bold; color: #000; }
+        .word-chip { cursor: pointer; padding: 2px 1px; display: inline-block; border-bottom: 2px solid #eee; margin-right: 3px; }
         .word-chip.perfect { color: var(--perfect); border-bottom: none; }
         .word-chip.miss { color: #888; }
         .word-chip.miss b { color: var(--miss) !important; text-decoration: underline; font-weight: 900; background: #fff0f0; }
@@ -40,14 +41,13 @@
         .voice-section { background: #2d3436; border-radius: 12px; padding: 12px; color: #fff; display: flex; flex-direction: column; gap: 5px; }
         .voice-header { display: flex; justify-content: space-between; align-items: flex-start; }
         .voice-label { font-size: 0.65rem; color: #aaa; }
-        .score-display { text-align: right; min-width: 60px; }
         .score-val { font-size: 1.2rem; font-weight: 900; line-height: 1; }
         .voice-text { font-size: 1.05rem; color: #55efc4; font-weight: bold; min-height: 1.2em; }
 
-        .speak-btn { width: 100%; background: var(--primary); color: white; border: none; padding: 14px; border-radius: 30px; cursor: pointer; font-weight: bold; font-size: 1rem; margin-top: 12px; box-shadow: 0 4px 0 #E68A00; }
+        .speak-btn { width: 100%; background: var(--primary); color: white; border: none; padding: 15px; border-radius: 30px; cursor: pointer; font-weight: bold; font-size: 1rem; margin-top: 12px; box-shadow: 0 4px 0 #E68A00; }
         .speak-btn.recording { background: #d63031 !important; box-shadow: 0 4px 0 #9b2222 !important; }
         
-        .advice-box { margin-top: 10px; background: #fff9db; padding: 10px; border-radius: 8px; font-size: 0.85rem; border-left: 4px solid #fcc419; display: none; color: #444; line-height: 1.6; }
+        .advice-box { margin-top: 10px; background: #fff9db; padding: 10px; border-radius: 8px; font-size: 0.85rem; border-left: 4px solid #fcc419; display: none; color: #444; }
     </style>
 </head>
 <body>
@@ -80,15 +80,15 @@
         };
 
         const stats = {
-            data: JSON.parse(localStorage.getItem('kHighStats_v16')) || { total: 0, pass: 0, passedIds: [] },
+            data: JSON.parse(localStorage.getItem('kHighStats_v17')) || { total: 0, pass: 0, passedIds: [] },
             save() {
-                localStorage.setItem('kHighStats_v16', JSON.stringify(this.data));
+                localStorage.setItem('kHighStats_v17', JSON.stringify(this.data));
                 document.getElementById('totalCount').innerText = this.data.total;
                 document.getElementById('passCount').innerText = this.data.pass;
             }
         };
 
-        function resetStats() { if(confirm("リセットする？")) { localStorage.removeItem('kHighStats_v16'); location.reload(); } }
+        function resetStats() { if(confirm("リセットする？")) { localStorage.removeItem('kHighStats_v17'); location.reload(); } }
 
         async function init() {
             stats.save();
@@ -119,18 +119,22 @@
             container.innerHTML = '';
             
             const dayRows = allData.filter(r => r[0] === date);
-            const title = dayRows[0][1] || "今日のレッスン"; 
+            const title = dayRows[0][1] || "英単語チェック"; 
             const videoUrl = dayRows[0][2] || "#"; 
 
             headerArea.innerHTML = `
                 <div class="day-header">
                     <span class="video-title">${title}</span>
-                    <a href="${videoUrl}" target="_blank" class="video-link-btn">📺 ショート動画を見る</a>
+                    <a href="${videoUrl}" target="_blank" class="video-link-btn">
+                        <span class="yt-icon">▶</span> ショート動画を見る
+                    </a>
                 </div>`;
 
             dayRows.forEach((row, rowIndex) => {
-                for (let j = 3; j <= 11; j += 2) { 
-                    const en = row[j]?.trim(); const jp = row[j+1]?.trim();
+                // 日本語:D(3), 英語:E(4), 日本語:F(5), 英語:G(6)... の順に修正
+                for (let j = 3; j <= 10; j += 2) { 
+                    const jp = row[j]?.trim();
+                    const en = row[j+1]?.trim();
                     if (!en || en.length < 2) continue;
                     const id = `id-${date}-${rowIndex}-${j}`;
                     container.innerHTML += `
@@ -162,6 +166,8 @@
             recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
             recognition.lang = 'en-US';
             recognition.interimResults = true;
+            recognition.continuous = false; // 無音判定を早めるためfalse
+            
             recognition.onstart = () => { isRecording = true; btn.classList.add('recording'); btn.innerText = "停止"; };
             recognition.onresult = (e) => { fb.innerText = Array.from(e.results).map(r => r[0].transcript).join(''); };
             recognition.onend = () => { 
