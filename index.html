@@ -14,11 +14,12 @@
         .header-area { text-align: center; margin-bottom: 10px; }
         .main-title { font-family: 'Noto Serif JP', serif; font-size: 1.4rem; color: var(--secondary); border-bottom: 3px solid var(--primary); display: inline-block; }
         
-        /* ヘッダー統計エリアの調整 */
-        .stats-bar { background: #fff; border-radius: 12px; padding: 12px 15px; margin: 15px 0; display: flex; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-        .stats-main { flex-grow: 1; display: flex; gap: 20px; font-weight: bold; font-size: 0.9rem; }
-        .stats-item span { color: var(--secondary); font-size: 1.1rem; margin-left: 4px; }
-        .reset-btn { background: #f0f0f0; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; color: #999; font-size: 0.65rem; white-space: nowrap; margin-left: 10px; }
+        /* 統計エリアのレイアウト調整 */
+        .stats-bar { background: #fff; border-radius: 12px; padding: 12px 15px; margin: 15px 0; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .stats-spacer { width: 50px; } /* 左側の空白を作って中央寄せを維持 */
+        .stats-main { flex-grow: 1; display: flex; justify-content: center; gap: 25px; font-weight: bold; font-size: 0.95rem; }
+        .stats-item span { color: var(--secondary); font-size: 1.2rem; margin-left: 4px; }
+        .reset-btn { background: #f0f0f0; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; color: #999; font-size: 0.65rem; white-space: nowrap; width: 60px; }
         
         .menu-container { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 10px; scrollbar-width: none; }
         .date-tab { background: #fff; border: 1px solid #ddd; padding: 8px 15px; border-radius: 20px; cursor: pointer; white-space: nowrap; }
@@ -53,9 +54,9 @@
     <div class="header-area"><h1 class="main-title">K高等学校-英語チェック</h1></div>
     
     <div class="stats-bar">
-        <div class="stats-main">
+        <div class="stats-spacer"></div> <div class="stats-main">
             <div class="stats-item">🔥 挑戦: <span id="totalCount">0</span>回</div>
-            <div class="stats-item">🏆 合格数: <span id="passCount">0</span>個</div>
+            <div class="stats-item">🏆 合格: <span id="passCount">0</span>個</div>
         </div>
         <button class="reset-btn" onclick="resetStats()">リセット</button>
     </div>
@@ -80,16 +81,15 @@
         };
 
         const stats = {
-            // v7にアップデートして累計挑戦回数を保持するように
-            data: JSON.parse(localStorage.getItem('kHighStats_v7')) || { total: 0, pass: 0, passedIds: [] },
+            data: JSON.parse(localStorage.getItem('kHighStats_v8')) || { total: 0, pass: 0, passedIds: [] },
             save() {
-                localStorage.setItem('kHighStats_v7', JSON.stringify(this.data));
+                localStorage.setItem('kHighStats_v8', JSON.stringify(this.data));
                 document.getElementById('totalCount').innerText = this.data.total;
                 document.getElementById('passCount').innerText = this.data.pass;
             }
         };
 
-        function resetStats() { if(confirm("今までの全記録をリセットするぜ？")) { localStorage.removeItem('kHighStats_v7'); location.reload(); } }
+        function resetStats() { if(confirm("今までの記録を全部消すぜ？")) { localStorage.removeItem('kHighStats_v8'); location.reload(); } }
 
         async function init() {
             stats.save();
