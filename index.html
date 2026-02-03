@@ -3,63 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>English Joy ✨</title>
+    <title>English Master 🔥</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         :root {
-            --primary: #FF9800; --secondary: #673AB7; --bg: #F0F2F5;
+            --primary: #FF9800; --secondary: #673AB7; --bg: #F0F4F8;
             --score-100: #00C853; --score-70: #2196F3; --score-40: #FFD600; --score-0: #FF5252;
             --yt-red: #FF0000;
         }
-        body { font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; background: var(--bg); color: #333; margin: 0; padding: 15px; line-height: 1.5; }
+        body { font-family: 'Helvetica Neue', Arial, sans-serif; background: var(--bg); color: #333; margin: 0; padding: 15px; }
         .menu-container { display: flex; gap: 10px; overflow-x: auto; padding: 10px 0; }
         .date-tab { background: #fff; border: 1px solid #ddd; padding: 8px 18px; border-radius: 20px; cursor: pointer; white-space: nowrap; font-weight: bold; color: #666; }
-        .date-tab.active { background: var(--secondary); color: white; border-color: var(--secondary); }
+        .date-tab.active { background: var(--secondary); color: white; }
 
         .practice-card { background: white; border-radius: 24px; padding: 20px; margin-bottom: 30px; box-shadow: 0 8px 20px rgba(0,0,0,0.06); }
         
-        /* YouTubeボタンを目立たせる */
         .yt-button {
             display: flex; align-items: center; justify-content: center; background: var(--yt-red); color: white; 
             padding: 14px; border-radius: 16px; text-decoration: none; 
-            font-weight: bold; margin-bottom: 25px; font-size: 1.1rem; box-shadow: 0 4px 0 #b30000; transition: 0.2s;
+            font-weight: bold; margin-bottom: 25px; font-size: 1.1rem; box-shadow: 0 4px 0 #b30000;
         }
         .yt-button svg { width: 28px; height: 28px; margin-right: 10px; fill: white; }
-        .yt-button:active { transform: translateY(2px); box-shadow: none; }
 
-        .phrase-item { margin-bottom: 35px; position: relative; border-bottom: 2px f0f0f0 solid; padding-bottom: 25px; }
+        .phrase-item { margin-bottom: 35px; position: relative; border-bottom: 2px #f0f0f0 solid; padding-bottom: 25px; }
         
-        /* 日本語訳を大きく・見やすく */
-        .jp-text { color: #1a1a1a; font-size: 1.4rem; font-weight: 800; margin-bottom: 10px; display: block; line-height: 1.3; }
-        .target-phrase { font-size: 1.3rem; margin-bottom: 15px; color: #444; display: block; font-weight: 500; }
+        .jp-text { color: #1a1a1a; font-size: 1.4rem; font-weight: 800; margin-bottom: 10px; display: block; }
+        .target-phrase { font-size: 1.2rem; margin-bottom: 15px; color: #666; display: block; }
         
         .feedback-container { background: #f8f9fa; padding: 12px; border-radius: 12px; margin-bottom: 15px; border-left: 4px solid #ddd; }
         .feedback-text { font-size: 1rem; color: #666; }
         
-        /* ボタンをスマートに */
         button.speak-btn { 
             width: 100%; background: var(--primary); color: white; border: none; 
-            padding: 12px; border-radius: 30px; cursor: pointer; font-weight: bold; 
-            font-size: 1.1rem; box-shadow: 0 4px 0 #E68A00;
+            padding: 12px; border-radius: 30px; cursor: pointer; font-weight: bold; font-size: 1.1rem; box-shadow: 0 4px 0 #E68A00;
         }
-        button.speak-btn:active { transform: translateY(2px); box-shadow: none; }
-        
+
         .score-box { 
             position: absolute; top: -10px; right: 0; color: white; padding: 6px 15px; 
             border-radius: 20px; font-size: 1.1rem; font-weight: 900; display: none; transform: rotate(5deg);
         }
 
-        /* 具体的なアドバイス表示 */
-        .advice-msg { margin-top: 15px; font-size: 0.95rem; color: #444; background: #FFF9C4; padding: 12px; border-radius: 12px; display: none; border-left: 5px solid #FBC02D; }
-        .advice-msg b { color: #d32f2f; }
-        
+        .advice-msg { margin-top: 15px; font-size: 0.95rem; color: #444; background: #E3F2FD; padding: 12px; border-radius: 12px; display: none; border-left: 5px solid #2196F3; }
         .status-msg { margin-top: 10px; font-size: 0.85rem; text-align: center; color: #999; }
         .correct { color: var(--score-100); font-weight: bold; }
         .error { color: var(--score-0); text-decoration: underline; font-weight: bold; }
     </style>
 </head>
 <body>
-    <h3 style="text-align:center; color: var(--secondary);">English Joy ✨</h3>
+    <h3 style="text-align:center; color: var(--secondary);">English Master Training 🔥</h3>
     <div id="dateMenu" class="menu-container"></div>
     <div id="content">Loading...</div>
 
@@ -73,7 +64,7 @@
                 const csvString = await response.text();
                 allData = csvString.split(/\r?\n/).map(row => row.split(','));
                 createMenu();
-            } catch (e) { document.getElementById('content').innerHTML = 'CSVリンクを貼ってください'; }
+            } catch (e) { console.error(e); }
         }
 
         function createMenu() {
@@ -98,41 +89,47 @@
             const container = document.getElementById('content');
             container.innerHTML = '';
             const filteredRows = allData.filter(row => row[0] === targetDate);
-
             filteredRows.forEach((row, i) => {
                 const youtubeUrl = row[12] ? row[12].trim() : null;
-                const ytBtn = youtubeUrl && youtubeUrl.startsWith('http') 
-                    ? `<a href="${youtubeUrl}" target="_blank" class="yt-button"><svg viewBox="0 0 24 24"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/></svg>このショート動画を見る</a>` : '';
-
+                const ytBtn = youtubeUrl && youtubeUrl.startsWith('http') ? `<a href="${youtubeUrl}" target="_blank" class="yt-button"><svg viewBox="0 0 24 24"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/></svg>このショート動画を見る</a>` : '';
                 let phrasesHtml = '';
                 for (let j = 2; j <= 10; j += 2) {
                     const en = row[j] ? row[j].trim() : "";
                     const jp = row[j+1] ? row[j+1].trim() : "";
                     if (en.length < 2) continue;
                     const id = `phrase-${i}-${j}`;
-                    phrasesHtml += `
-                        <div class="phrase-item">
-                            <div class="score-box" id="score-${id}"></div>
-                            <div class="jp-text">${jp}</div>
-                            <div class="target-phrase" id="display-${id}">${en}</div>
-                            <div class="feedback-container"><div class="feedback-text" id="feedback-${id}">あなたの声: ---</div></div>
-                            <button class="speak-btn" onclick="check('${en.replace(/'/g, "\\'")}', '${id}')">🎤 発音チェック</button>
-                            <div class="advice-msg" id="advice-${id}"></div>
-                            <div class="status-msg" id="status-${id}"></div>
-                        </div>`;
+                    phrasesHtml += `<div class="phrase-item"><div class="score-box" id="score-${id}"></div><div class="jp-text">${jp}</div><div class="target-phrase" id="display-${id}">${en}</div><div class="feedback-container"><div class="feedback-text" id="feedback-${id}">あなたの声: ---</div></div><button class="speak-btn" onclick="check('${en.replace(/'/g, "\\'")}', '${id}')">🎤 発音チェック</button><div class="advice-msg" id="advice-${id}"></div><div class="status-msg" id="status-${id}"></div></div>`;
                 }
                 container.innerHTML += `<div class="practice-card">${ytBtn}${phrasesHtml}</div>`;
             });
         }
 
-        function getAdvice(word) {
+        function getDetailedAdvice(word) {
             const w = word.toLowerCase();
-            if (w.includes('r')) return "Rの音：舌をどこにも付けずに、喉の奥にグッと引いて「ゥ」に近い音から始めてみて！";
-            if (w.includes('l')) return "Lの音：舌の先を上の前歯の付け根にしっかり押し当てて離してみて！";
-            if (w.includes('th')) return "Thの音：前歯で舌先を軽く挟んで、隙間から息を出すのがコツだよ。";
-            if (w.includes('v') || w.includes('f')) return "V/Fの音：上の前歯で下唇を軽く噛んで、振動させてみて！";
-            if (w.includes('w')) return "Wの音：唇をタコのように丸めて突き出すのがポイント。";
-            return "落ち着いて、単語を一つずつはっきり発音することを意識しよう！";
+            const rules = [
+                { k: 'th', m: '【Th音】舌先を上の前歯で軽く噛み、隙間から息を出すだけ！「サ」にならないように注意。' },
+                { k: 'r', m: '【R音】舌をどこにも付けず、喉の奥にグッと引いて！「ゥ」の口から始めるとGood。' },
+                { k: 'l', m: '【L音】舌先を上の前歯の付け根にガチッと押し当てて！弾くように発音して。' },
+                { k: 'f', m: '【F音】上の前歯を下の唇に軽く乗せて、隙間から息を吐き出すよ。' },
+                { k: 'v', m: '【V音】上の前歯で下唇を噛みながら、喉を震わせて「ヴー」と音を出して。' },
+                { k: 'sh', m: '【Sh音】静かにしてほしい時の「シィー！」と同じ口。アヒル口で。' },
+                { k: 'ch', m: '【Ch音】「ッチャ！」と破裂させる感じ。SHより強く息を出すのがコツ。' },
+                { k: 'w', m: '【W音】タコのように唇を思い切り丸めてから、一気に広げてみて。' },
+                { k: 'ae', m: '【æ音】「ア」と「エ」の中間。口を左右に引いて大げさに「ア」と言ってみて。' },
+                { k: 'z', m: '【Z音】前歯を閉じて、ハチが飛ぶ音のように「ズー」と震わせて。' },
+                { k: 's', m: '【S音】前歯を閉じて、隙間から鋭く「スゥー」と息を通すだけ。' },
+                { k: 'nk', m: '【nk音】「ンク」ではなく、鼻の奥を閉じて「ングッ」と詰める感じ。' },
+                { k: 'ng', m: '【ng音】最後を「グ」とはっきり言わず、鼻に抜ける音で止めてみて。' },
+                { k: 't', m: '【T音】舌先を弾いて、息を強く「ッ！」と吐き出すイメージ。' },
+                { k: 'd', m: '【D音】Tと同じ位置で、喉を震わせて「ドゥ」と短く。' },
+                { k: 'p', m: '【P音】閉じた唇を爆発させるように「プッ！」と息を出して。' },
+                { k: 'ee', m: '【ee音】思い切り口を横に引いて、長い「イー」を意識して！' },
+                { k: 'i', m: '【i音】「イ」よりも「エ」に近い、脱力した短い「イ」。' },
+                { k: 'o', m: '【o音】驚いた時の「オゥ！」のイメージ。口を縦に開けて。' },
+                { k: 'u', m: '【u音】お腹を殴られた時の「アッ」のように短く鋭く。' }
+            ];
+            for(let r of rules) { if(w.includes(r.k)) return r.m; }
+            return "単語を一つずつ、はっきりアクセントを意識して発音してみよう！";
         }
 
         function check(target, id) {
@@ -144,10 +141,11 @@
             
             const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
             recognition.lang = 'en-US';
-            status.innerText = "聴いています...";
-
             recognition.onresult = (event) => {
-                const speech = event.results[0][0].transcript;
+                const res = event.results[0][0];
+                const speech = res.transcript;
+                const confidence = res.confidence; // ★ここが難易度調整の鍵！
+                
                 const clean = (s) => s.toLowerCase().replace(/[.!?,]/g, "").trim();
                 const tWords = target.split(/\s+/);
                 const sWords = clean(speech).split(/\s+/);
@@ -169,7 +167,10 @@
                 });
                 display.innerHTML = resultHtml;
 
-                const score = Math.round((correctCount / tWords.length) * 100);
+                // 基礎点 × 自信度 で最終スコアを計算（カタカナだとconfidenceが下がる）
+                let score = Math.round((correctCount / tWords.length) * 100 * (0.5 + (confidence * 0.5)));
+                if(score > 100) score = 100;
+
                 scoreBox.innerText = `${score}点`;
                 scoreBox.style.display = "block";
                 
@@ -178,11 +179,11 @@
                 else if (score >= 40) { scoreBox.style.background = "var(--score-40)"; scoreBox.style.color = "#333"; }
                 else { scoreBox.style.background = "var(--score-0)"; }
 
-                if (missedWord && score < 90) {
-                    advice.innerHTML = `💡 <b>"${missedWord}" のコツ:</b><br>${getAdvice(missedWord)}`;
+                if (missedWord && score < 95) {
+                    advice.innerHTML = `💡 <b>発音矯正：</b><br>${getDetailedAdvice(missedWord)}`;
                     advice.style.display = "block";
                 }
-                status.innerText = score === 100 ? "Perfect!" : "Keep trying!";
+                status.innerText = score >= 90 ? "Excellent!" : "Try to be clearer!";
             };
             recognition.start();
         }
