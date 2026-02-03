@@ -95,9 +95,21 @@
             const menu = document.getElementById('dateMenu');
             const now = new Date();
             const todayStr = now.getFullYear() + '/' + ('0' + (now.getMonth() + 1)).slice(-2) + '/' + ('0' + now.getDate()).slice(-2);
-            const dates = [...new Set(allData.slice(1).map(r => r[0]))].filter(d => d && d <= todayStr).sort((a, b) => b.localeCompare(a));
+            const currentHour = now.getHours();
+
+            // 重複排除とソート
+            const dates = [...new Set(allData.slice(1).map(r => r[0]))].filter(d => d).sort((a, b) => b.localeCompare(a));
+            
             menu.innerHTML = '';
+            let visibleCount = 0;
+
             dates.forEach(date => {
+                // 未来の日付は表示しない
+                if (date > todayStr) return;
+                
+                // 今日と同じ日付の場合、18時（午後6時）を過ぎていなければ表示しない
+                if (date === todayStr && currentHour < 18) return;
+
                 const btn = document.createElement('button');
                 btn.className = 'date-tab';
                 btn.innerText = date;
@@ -107,8 +119,14 @@
                     showContent(date);
                 };
                 menu.appendChild(btn);
+                visibleCount++;
             });
-            if(menu.firstChild) menu.firstChild.click();
+
+            if(menu.firstChild) {
+                menu.firstChild.click();
+            } else if (visibleCount === 0) {
+                document.getElementById('content').innerHTML = "まだ公開されているレッスンはありません（18時以降に更新されます）";
+            }
         }
 
         function showContent(date) {
@@ -181,10 +199,10 @@
             fb.innerText = "...";
             status.style.display = "inline";
 
-            const rec = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+            const rec = new (window.SpeechRecognition || window.webkitRecognition)();
             currentRecognition = rec;
             rec.lang = 'en-US';
-            rec.interimResults = true; // これをtrueに！
+            rec.interimResults = true;
 
             rec.onresult = (e) => {
                 if (isAborted) return;
@@ -194,10 +212,7 @@
                     if (e.results[i].isFinal) finalTranscript += e.results[i][0].transcript;
                     else interimTranscript += e.results[i][0].transcript;
                 }
-                
-                // リアルタイムで表示を更新
                 fb.innerText = finalTranscript || interimTranscript;
-
                 if (finalTranscript !== '') {
                     processFinalResult(finalTranscript, targetRaw, id);
                     rec.stop();
