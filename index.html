@@ -15,48 +15,54 @@
         }
         body { font-family: 'Helvetica Neue', Arial, sans-serif; background: var(--bg); color: #333; margin: 0; padding: 15px; }
         
-        /* タイトルをおしゃれに中央寄せ */
         .header-area { text-align: center; margin-bottom: 20px; position: relative; }
         .main-title { 
             font-family: 'Noto Serif JP', serif; font-size: 1.6rem; color: var(--secondary); 
             margin: 10px 0; letter-spacing: 0.05em;
         }
-        .challenge-count { 
-            position: absolute; top: -5px; right: 0; font-size: 0.7rem; color: #888; 
-            background: #fff; padding: 3px 8px; border-radius: 8px; border: 1px solid #eee;
+        .total-counter { 
+            position: absolute; top: -5px; right: 0; font-size: 0.75rem; color: #888; 
+            background: #fff; padding: 4px 10px; border-radius: 10px; border: 1px solid #ddd;
         }
 
         .menu-container { display: flex; gap: 10px; overflow-x: auto; padding: 10px 0; margin-bottom: 10px; }
-        .date-tab { background: #fff; border: 1px solid #ddd; padding: 8px 18px; border-radius: 20px; cursor: pointer; white-space: nowrap; font-weight: bold; color: #666; }
-        .date-tab.active { background: var(--secondary); color: white; }
+        .date-tab { 
+            background: #fff; border: 1px solid #ddd; padding: 8px 15px; border-radius: 20px; 
+            cursor: pointer; white-space: nowrap; font-weight: bold; color: #666; display: flex; flex-direction: column; align-items: center;
+        }
+        .date-tab.active { background: var(--secondary); color: white; border-color: var(--secondary); }
+        .tab-count { font-size: 0.65rem; opacity: 0.8; }
 
         .practice-card { background: white; border-radius: 24px; padding: 20px; margin-bottom: 30px; box-shadow: 0 8px 20px rgba(0,0,0,0.06); }
         
+        /* YouTubeボタンのデザイン改善 */
         .yt-button {
             display: flex; align-items: center; justify-content: center; background: var(--yt-red); color: white; 
-            padding: 14px; border-radius: 16px; text-decoration: none; font-weight: bold; margin-bottom: 25px; box-shadow: 0 4px 0 #b30000;
+            padding: 12px; border-radius: 16px; text-decoration: none; font-weight: bold; margin-bottom: 25px; 
+            box-shadow: 0 4px 0 #b30000; font-size: 0.95rem; line-height: 1.2;
         }
-        .yt-button svg { width: 24px; height: 24px; margin-right: 8px; fill: white; }
+        .yt-button svg { width: 30px; height: 30px; margin-right: 12px; flex-shrink: 0; fill: white; }
+        .yt-text { text-align: left; }
+        .yt-label { font-size: 0.7rem; opacity: 0.9; display: block; }
 
         .phrase-item { margin-bottom: 35px; position: relative; border-bottom: 2px #f0f0f0 solid; padding-bottom: 25px; }
         .jp-text { color: #1a1a1a; font-size: 1.5rem; font-weight: 800; margin-bottom: 8px; display: block; }
         .target-phrase { font-size: 1.1rem; margin-bottom: 15px; color: #777; display: block; }
         
-        /* 録音中ボタンのアニメーション */
+        .feedback-container { background: #fdfdfd; padding: 10px; border-radius: 10px; margin-bottom: 15px; border: 1px dashed #ccc; }
+        .feedback-label { font-size: 0.75rem; color: #999; margin-bottom: 4px; display: block; }
+        .feedback-text { font-size: 1.1rem; color: #333; font-weight: bold; }
+
         button.speak-btn { 
             width: 100%; background: var(--primary); color: white; border: none; 
             padding: 14px; border-radius: 30px; cursor: pointer; font-weight: bold; font-size: 1.1rem; 
-            box-shadow: 0 4px 0 #E68A00; transition: all 0.2s; position: relative; overflow: hidden;
+            box-shadow: 0 4px 0 #E68A00; transition: all 0.2s;
         }
         button.speak-btn.recording {
             background: #e91e63; box-shadow: 0 0 15px rgba(233, 30, 99, 0.4);
             animation: pulse 1.5s infinite;
         }
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.02); }
-            100% { transform: scale(1); }
-        }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.02); } 100% { transform: scale(1); } }
 
         .score-box { 
             position: absolute; top: -10px; right: 0; color: white; padding: 6px 15px; 
@@ -72,7 +78,7 @@
 </head>
 <body>
     <div class="header-area">
-        <div class="challenge-count" id="challengeCount">総チャレンジ数: 0</div>
+        <div class="total-counter" id="totalCount">総チャレンジ数: 0</div>
         <h1 class="main-title">高校退学教師のK高等学校</h1>
     </div>
     
@@ -82,10 +88,14 @@
     <script>
         const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRAWmRJRNgjq3OtDdRPDvf3uXywGfHW6_saJSkox9Q0jHOUrg9RzjYCMcCeB8r5aesQUPJo1p1Lvbbm/pub?gid=0&single=true&output=csv';
         let allData = [];
+        let dailyCounts = JSON.parse(localStorage.getItem('daily_challenges') || '{}');
 
-        // チャレンジ数の管理
-        let challenges = localStorage.getItem('total_challenges') || 0;
-        document.getElementById('challengeCount').innerText = `総チャレンジ数: ${challenges}`;
+        function updateCounters() {
+            let total = Object.values(dailyCounts).reduce((a, b) => a + b, 0);
+            document.getElementById('totalCount').innerText = `総チャレンジ数: ${total}`;
+            localStorage.setItem('daily_challenges', JSON.stringify(dailyCounts));
+            createMenu(); // タブの数字を更新
+        }
 
         async function loadData() {
             try {
@@ -101,17 +111,24 @@
             const now = new Date();
             const todayStr = now.getFullYear() + '/' + String(now.getMonth() + 1).padStart(2, '0') + '/' + String(now.getDate()).padStart(2, '0');
             const dates = [...new Set(allData.slice(1).map(r => r[0]))].filter(d => d && d.trim() !== "" && d <= todayStr).sort();
+            
+            const currentActive = document.querySelector('.date-tab.active')?.dataset.date;
             menu.innerHTML = '';
+            
             dates.forEach(date => {
+                const count = dailyCounts[date] || 0;
                 const btn = document.createElement('button');
-                btn.className = 'date-tab'; btn.innerText = date;
+                btn.className = 'date-tab' + (currentActive === date ? ' active' : '');
+                btn.dataset.date = date;
+                btn.innerHTML = `<span>${date}</span><span class="tab-count">${count} sessions</span>`;
                 btn.onclick = () => {
                     document.querySelectorAll('.date-tab').forEach(t => t.classList.remove('active'));
-                    btn.classList.add('active'); showByDate(date);
+                    btn.classList.add('active'); 
+                    showByDate(date);
                 };
                 menu.appendChild(btn);
             });
-            if(menu.lastChild) menu.lastChild.click();
+            if(!currentActive && menu.lastChild) menu.lastChild.click();
         }
 
         function showByDate(targetDate) {
@@ -119,49 +136,50 @@
             container.innerHTML = '';
             const filteredRows = allData.filter(row => row[0] === targetDate);
             filteredRows.forEach((row, i) => {
+                const videoTitle = row[11] ? row[11].trim() : "英会話レッスン";
                 const youtubeUrl = row[12] ? row[12].trim() : null;
-                const ytBtn = youtubeUrl && youtubeUrl.startsWith('http') ? `<a href="${youtubeUrl}" target="_blank" class="yt-button"><svg viewBox="0 0 24 24"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/></svg>このショート動画を見る</a>` : '';
+                const ytBtn = youtubeUrl && youtubeUrl.startsWith('http') ? 
+                    `<a href="${youtubeUrl}" target="_blank" class="yt-button">
+                        <svg viewBox="0 0 24 24"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/></svg>
+                        <div class="yt-text"><span class="yt-label">このショート動画を見る</span>${videoTitle}</div>
+                    </a>` : '';
+                
                 let phrasesHtml = '';
                 for (let j = 2; j <= 10; j += 2) {
                     const en = row[j] ? row[j].trim() : "";
                     const jp = row[j+1] ? row[j+1].trim() : "";
                     if (en.length < 2) continue;
                     const id = `phrase-${i}-${j}`;
-                    phrasesHtml += `<div class="phrase-item"><div class="score-box" id="score-${id}"></div><div class="jp-text">${jp}</div><div class="target-phrase" id="display-${id}">${en}</div><button class="speak-btn" id="btn-${id}" onclick="check('${en.replace(/'/g, "\\'")}', '${id}')">🎤 クリックして発音</button><div class="advice-msg" id="advice-${id}"></div></div>`;
+                    phrasesHtml += `
+                        <div class="phrase-item">
+                            <div class="score-box" id="score-${id}"></div>
+                            <div class="jp-text">${jp}</div>
+                            <div class="target-phrase" id="display-${id}">${en}</div>
+                            <div class="feedback-container">
+                                <span class="feedback-label">あなたの声:</span>
+                                <div class="feedback-text" id="feedback-${id}">---</div>
+                            </div>
+                            <button class="speak-btn" id="btn-${id}" onclick="check('${en.replace(/'/g, "\\'")}', '${id}', '${targetDate}')">🎤 クリックして発音</button>
+                            <div class="advice-msg" id="advice-${id}"></div>
+                        </div>`;
                 }
                 container.innerHTML += `<div class="practice-card">${ytBtn}${phrasesHtml}</div>`;
             });
         }
 
-        function getDetailedAdvice(word) {
-            const w = word.toLowerCase();
-            const rules = [
-                { k: 'th', m: '【Th】舌を軽く噛んで息を出す！「サ」ではなく「ス」に近い空気の音です。' },
-                { k: 'r', m: '【R】舌を喉の奥にグッと引いて！舌の先がどこにも触れないのがポイント。' },
-                { k: 'l', m: '【L】舌先を前歯の付け根にしっかり押し当ててから弾いて！' },
-                { k: 'f', m: '【F】前歯で下唇を軽く押さえて、隙間から「スー」と息を漏らして。' },
-                { k: 'v', m: '【V】Fの口のまま、喉を震わせて「ブー」と音を出してみて。' },
-                { k: 'sh', m: '【Sh】アヒル口で「静かに！」のポーズ。鋭い息の音を意識して。' },
-                { k: 'ae', m: '【æ】口を左右に思い切り引いて「ア」と言ってみて。' }
-            ];
-            for(let r of rules) { if(w.includes(r.k)) return r.m; }
-            return "単語のアクセント（強く読む部分）をもっと意識すると良くなります！";
-        }
-
-        function check(target, id) {
+        function check(target, id, date) {
             const btn = document.getElementById(`btn-${id}`);
             const display = document.getElementById(`display-${id}`);
+            const feedback = document.getElementById(`feedback-${id}`);
             const scoreBox = document.getElementById(`score-${id}`);
             const advice = document.getElementById(`advice-${id}`);
             
-            // UIのフィードバック：録音中状態にする
             btn.classList.add('recording');
             btn.innerText = "Listening...";
 
-            // チャレンジ数カウントアップ
-            challenges++;
-            localStorage.setItem('total_challenges', challenges);
-            document.getElementById('challengeCount').innerText = `総チャレンジ数: ${challenges}`;
+            // カウントアップ処理
+            dailyCounts[date] = (dailyCounts[date] || 0) + 1;
+            updateCounters();
 
             const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
             recognition.lang = 'en-US';
@@ -174,6 +192,8 @@
                 const speech = res.transcript;
                 const confidence = res.confidence;
                 
+                feedback.innerText = speech; // あなたの声を表示
+
                 const clean = (s) => s.toLowerCase().replace(/[.!?,]/g, "").trim();
                 const tWords = target.split(/\s+/);
                 const sWords = clean(speech).split(/\s+/);
@@ -185,7 +205,7 @@
                 tWords.forEach(word => {
                     const cleanW = clean(word);
                     if (sWords.includes(cleanW)) {
-                        if (confidence < 0.88) { // 判定を少し厳しめに維持
+                        if (confidence < 0.88) {
                             resultHtml += `<span class="good">${word}</span> `;
                             if(!missedWord) missedWord = word;
                         } else {
@@ -201,34 +221,17 @@
 
                 let score = Math.round((totalConfidence / tWords.length) * 100 * (0.6 + (confidence * 0.4)));
                 if(score > 100) score = 100;
-
                 scoreBox.innerText = `${score}点`;
                 scoreBox.style.display = "block";
                 
-                if (score >= 90) { 
-                    scoreBox.style.background = "var(--score-100)"; 
-                    advice.style.display = "none"; confetti(); 
-                } else {
+                if (score >= 90) { scoreBox.style.background = "var(--score-100)"; advice.style.display = "none"; confetti(); }
+                else {
                     scoreBox.style.background = (score >= 70) ? "var(--score-70)" : (score >= 40 ? "var(--score-40)" : "var(--score-0)");
-                    
-                    // 具体的なフィードバックの生成
-                    let msg = "";
-                    if (confidence < 0.8) {
-                        msg = `💡 <b>判定：声が聞き取りにくいです。</b><br>周りがうるさいか、声が小さすぎるかもしれません。もっとハキハキと、お腹から声を出してみて！`;
-                    } else if (missedWord) {
-                        msg = `💡 <b>"${missedWord}" の発音矯正：</b><br>${getDetailedAdvice(missedWord)}`;
-                    }
-                    advice.innerHTML = msg;
+                    advice.innerHTML = confidence < 0.8 ? `💡 <b>判定：声が聞き取りにくいです。</b><br>ハキハキと、少し大きめの声で話してみて！` : `💡 <b>"${missedWord}" をチェック：</b><br>発音がカタカナに近いかもしれません。`;
                     advice.style.display = "block";
-                    if(window.navigator.vibrate) window.navigator.vibrate(score < 50 ? 100 : 30);
                 }
             };
-
-            recognition.onerror = () => {
-                btn.classList.remove('recording');
-                btn.innerText = "🎤 もう一度試す";
-            };
-
+            recognition.onerror = () => { btn.classList.remove('recording'); btn.innerText = "🎤 もう一度試す"; };
             recognition.start();
         }
         loadData();
