@@ -61,9 +61,9 @@
             'ae':"指2本が入るくらい縦に口を開け、「ア」と言いながら「エ」の音を混ぜるイメージ！",
             'ou':"「オ」と言い始めてから、最後は思い切り口をすぼめて「ゥ」で終わらせて！",
             'ei':"「エ」をはっきり言った後、口角を横に引きながら「イ」を添えるとうまくいくぞ！",
-            'w':"笛を吹く時のように口を最小限まで丸めて突き出し、一気に広げながら出そう！",
-            'z':"歯を閉じて「ス」の形のまま、喉の奥を震わせて「ズー」とハチの羽音を出して！",
-            'ch':"舌先を上顎に付けて息を止め、一気に「チッ」と弾けさせて息を出すおう！",
+            'w':"笛を吹く時のように口を丸めて突き出し、一気に広げながら出そう！",
+            'z':"歯を閉じて「ズ」の形のまま、喉の奥を震わせて「ズー」とハチの羽音を出して！",
+            'ch':"舌先を上顎に付けて息を止め、一気に「チッ」と弾けさせて息を出そう！",
             'dg':"舌先を上顎に押し当ててから、喉を震わせて「ヂッ」と力強く出すんだ！",
             'm':"上下の唇をしっかり閉じ、鼻に音を響かせるように「ムーン」と出すのがコツだ！",
             'n':"唇は開けたまま、舌先を上の歯茎にベタッと付けて鼻から音を抜いてみて！",
@@ -89,9 +89,28 @@
             try {
                 const res = await fetch(csvUrl);
                 const text = await res.text();
+                const now = new Date();
+                const currentHour = now.getHours();
+                const todayStr = `${now.getFullYear()}/${(now.getMonth()+1).toString().padStart(2,'0')}/${now.getDate().toString().padStart(2,'0')}`;
+
                 allData = text.split(/\r?\n/).filter(line => line.includes(',')).map(r => r.split(','));
-                const dates = [...new Set(allData.slice(1).map(r => r[0]))].filter(d => d).sort((a,b) => b.localeCompare(a));
+                
+                // 18時以降のみ解禁するフィルタリング
+                const filteredData = allData.slice(1).filter(r => {
+                    const rowDate = r[0].replace(/-/g, '/'); // スプレッドシートの日付形式に対応
+                    if (rowDate > todayStr) return false; // 未来は出さない
+                    if (rowDate === todayStr && currentHour < 18) return false; // 今日だけど18時前なら出さない
+                    return true;
+                });
+
+                const dates = [...new Set(filteredData.map(r => r[0]))].filter(d => d).sort((a,b) => b.localeCompare(a));
                 const menu = document.getElementById('dateMenu');
+                
+                if (dates.length === 0) {
+                    document.getElementById('content').innerHTML = "<p style='text-align:center; padding:20px;'>今日の課題は18時に公開されるぜ！待ってな！</p>";
+                    return;
+                }
+
                 dates.forEach((d, i) => {
                     const btn = document.createElement('button');
                     btn.className = 'date-tab'; btn.innerText = d;
@@ -140,17 +159,10 @@
         function startCheck(target, id) {
             const btn = document.getElementById(`btn-${id}`);
             const fb = document.getElementById(`fb-${id}`);
-            
-            if (recognition) {
-                isUserStop = true;
-                recognition.stop();
-                return;
-            }
-
+            if (recognition) { isUserStop = true; recognition.stop(); return; }
             isUserStop = false;
             btn.classList.add('recording'); btn.innerText = "停止して判定";
             fb.innerText = "聞き取り中...";
-            
             recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
             recognition.lang = 'en-US';
             recognition.onresult = (e) => {
@@ -160,9 +172,7 @@
             };
             recognition.onend = () => {
                 btn.classList.remove('recording'); btn.innerText = "🎤 判定スタート";
-                if (isUserStop && fb.innerText === "聞き取り中...") {
-                    fb.innerText = "..."; // キャンセル時は戻す
-                }
+                if (isUserStop && fb.innerText === "聞き取り中...") fb.innerText = "...";
                 recognition = null;
             };
             recognition.start();
@@ -174,28 +184,23 @@
             const area = document.getElementById(`area-${id}`);
             const chips = area.querySelectorAll('.word-chip');
             const targetKeys = Object.keys(tips).sort((a,b) => b.length - a.length);
-            
             let correctCount = 0;
             let firstMissedKey = null;
 
             tWords.forEach((tw, i) => {
                 const chip = chips[i];
                 const originalText = chip.getAttribute('data-orig');
-                
                 if (rWords.includes(tw)) {
                     chip.className = 'word-chip perfect';
                     chip.innerText = originalText;
                     correctCount++;
                 } else {
                     chip.className = 'word-chip miss';
-                    // 子音・母音の赤字化ロジック
                     let highlighted = originalText;
-                    let foundKeyInThisWord = null;
                     for(let k of targetKeys) {
                         if(tw.includes(k)) {
                             const regex = new RegExp(`(${k})`, 'gi');
                             highlighted = originalText.replace(regex, `<b>$1</b>`);
-                            foundKeyInThisWord = k;
                             if(!firstMissedKey) firstMissedKey = k;
                             break; 
                         }
@@ -206,22 +211,14 @@
 
             const score = Math.round((correctCount / tWords.length) * 100);
             stats.data.total++;
-            if (score >= 70) {
-                stats.data.pass++;
-                if(score === 100) confetti();
-            }
+            if (score >= 70) { stats.data.pass++; if(score === 100) confetti(); }
             stats.save();
 
             document.getElementById(`sc-${id}`).innerHTML = `<span class="score-val" style="color:${score>=70?'#00C853':'#FF9800'}">${score}点</span>`;
-            
             const ad = document.getElementById(`ad-${id}`);
             let tipMsg = score >= 70 ? "合格！その調子だ。" : "もう少しハッキリ発音してみよう！";
-            
-            if (score < 100 && firstMissedKey) {
-                tipMsg = `💡アドバイス：${firstMissedKey.toUpperCase()}の音が苦手かも？<br>${tips[firstMissedKey]}`;
-            }
-            ad.innerHTML = tipMsg;
-            ad.style.display = "block";
+            if (score < 100 && firstMissedKey) tipMsg = `💡アドバイス：${firstMissedKey.toUpperCase()}の音が苦手かも？<br>${tips[firstMissedKey]}`;
+            ad.innerHTML = tipMsg; ad.style.display = "block";
         }
 
         init();
