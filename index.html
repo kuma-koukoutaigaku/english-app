@@ -27,7 +27,7 @@
         .word-chip.miss b { color: var(--miss); text-decoration: underline; font-weight: 900; }
         .voice-section { background: #2d3436; border-radius: 15px; padding: 15px; color: #fff; position: relative; }
         .voice-label { font-size: 0.75rem; color: #aaa; display: block; margin-bottom: 5px; }
-        .voice-text { font-size: 1.1rem; color: #55efc4; font-weight: bold; padding-right: 90px; }
+        .voice-text { font-size: 1.1rem; color: #55efc4; font-weight: bold; padding-right: 90px; min-height: 1.2em; }
         .score-display { position: absolute; right: 15px; top: 15px; text-align: center; }
         .score-val { font-size: 1.5rem; font-weight: 900; display: block; }
         .speak-btn { width: 100%; background: var(--primary); color: white; border: none; padding: 15px; border-radius: 30px; cursor: pointer; font-weight: bold; font-size: 1.1rem; margin-top: 10px; box-shadow: 0 4px 0 #E68A00; }
@@ -48,40 +48,14 @@
         const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRAWmRJRNgjq3OtDdRPDvf3uXywGfHW6_saJSkox9Q0jHOUrg9RzjYCMcCeB8r5aesQUPJo1p1Lvbbm/pub?gid=0&single=true&output=csv';
         let allData = [];
         let recognition = null;
-        let isUserStop = false;
 
-        const tips = {
-            'th':"上顎の前歯で舌の先を軽く挟んで、その隙間から「スッ」と息を漏らしてみて！",
-            'l':"舌の先を「上の前歯の裏の付け根」にガチッと押し当てて、声を横から出すイメージだ！",
-            'r':"舌をどこにも付けない！口の奥にグイッと引いて、両サイドを奥歯に当てるんだ！",
-            'v':"上の前歯を「下唇の内側」に軽く当てて、喉を震わせて「ヴー」と鳴らす感じだ！",
-            'f':"上の前歯で下唇を軽く押さえて、その間から勢いよく「フッ」と息を吹き出そう！",
-            's':"上下の歯を軽く閉じ、舌を前歯に近づけて、狭い隙間から鋭く「スッ」と吐いて！",
-            'sh':"口をタコのように前に突き出し、静かにさせる時の「シーッ」を強く言うんだ！",
-            'ae':"指2本が入るくらい縦に口を開け、「ア」と言いながら「エ」の音を混ぜるイメージ！",
-            'ou':"「オ」と言い始めてから、最後は思い切り口をすぼめて「ゥ」で終わらせて！",
-            'ei':"「エ」をはっきり言った後、口角を横に引きながら「イ」を添えるとうまくいくぞ！",
-            'w':"笛を吹く時のように口を丸めて突き出し、一気に広げながら出そう！",
-            'z':"歯を閉じて「ズ」の形のまま、喉の奥を震わせて「ズー」とハチの羽音を出して！",
-            'ch':"舌先を上顎に付けて息を止め、一気に「チッ」と弾けさせて息を出そう！",
-            'dg':"舌先を上顎に押し当ててから、喉を震わせて「ヂッ」と力強く出すんだ！",
-            'm':"上下の唇をしっかり閉じ、鼻に音を響かせるように「ムーン」と出すのがコツだ！",
-            'n':"唇は開けたまま、舌先を上の歯茎にベタッと付けて鼻から音を抜いてみて！",
-            'ng':"舌の付け根を上顎の奥に持ち上げて、喉の入り口を塞いで鼻から抜くんだ！",
-            't':"舌先を上の歯茎に弾かせて、声は出さずに「トゥッ」と鋭く息を飛ばそう！",
-            'd':"舌先を上の歯茎に押し当てて溜めた空気を、喉を震わせながら「ドゥッ」と放て！",
-            'b':"唇をギュッと結んで溜めた空気を、爆発させるように「ブッ」と外に出そう！"
-        };
+        const tips = { 'th':"上顎の前歯で舌の先を軽く挟んで！", 'l':"舌の先を上の前歯の裏に押し当てて！", 'r':"舌を浮かせ、口の奥にグイッと引いて！", 'v':"上の前歯を下唇の内側に当てて！", 'f':"上の前歯で下唇を軽く押さえて息を出して！", 's':"歯の隙間から鋭く息を吐いて！", 'sh':"口を突き出し「シーッ」と強く！", 'ae':"アとエの中間の音を狙って！", 'ou':"オから始めて最後は口をすぼめる！", 'ei':"エの後に軽くイを添えて！", 'w':"口を丸めて突き出してから広げる！", 'z':"喉を震わせてハチの羽音のように！", 'ch':"一気に「チッ」と弾けさせて！", 'dg':"喉を震わせて力強く「ヂッ」！", 'm':"唇を閉じて鼻に響かせて！", 'n':"舌先を歯茎に付けて鼻から抜く！", 'ng':"喉の入り口を塞いで鼻から抜く！", 't':"鋭く「トゥッ」と息を飛ばして！", 'd':"喉を震わせ「ドゥッ」と放て！", 'b':"唇を結んで爆発させるように！" };
 
         const stats = {
-            // passedItemsに合格済みの問題IDを保存する
             data: JSON.parse(localStorage.getItem('kHighStats')) || { total: 0, pass: 0, lastDate: "", passedItems: [] },
             save() {
                 const today = new Date().toLocaleDateString();
-                if (this.data.lastDate !== today) { 
-                    this.data.total = 0; 
-                    this.data.lastDate = today; 
-                }
+                if (this.data.lastDate !== today) { this.data.total = 0; this.data.lastDate = today; }
                 localStorage.setItem('kHighStats', JSON.stringify(this.data));
                 document.getElementById('totalCount').innerText = this.data.total;
                 document.getElementById('passCount').innerText = this.data.pass;
@@ -90,9 +64,9 @@
                 if (!this.data.passedItems.includes(id)) {
                     this.data.passedItems.push(id);
                     this.data.pass++;
-                    return true; // 新規合格
+                    return true;
                 }
-                return false; // すでに合格済み
+                return false;
             }
         };
 
@@ -104,31 +78,23 @@
                 const now = new Date();
                 const currentHour = now.getHours();
                 const todayStr = `${now.getFullYear()}/${(now.getMonth()+1).toString().padStart(2,'0')}/${now.getDate().toString().padStart(2,'0')}`;
-
                 allData = text.split(/\r?\n/).filter(line => line.includes(',')).map(r => r.split(','));
-                
                 const filteredData = allData.slice(1).filter(r => {
                     const rowDate = r[0].replace(/-/g, '/');
                     if (rowDate > todayStr) return false;
                     if (rowDate === todayStr && currentHour < 18) return false;
                     return true;
                 });
-
                 const dates = [...new Set(filteredData.map(r => r[0]))].filter(d => d).sort((a,b) => b.localeCompare(a));
                 const menu = document.getElementById('dateMenu');
-                
                 if (dates.length === 0) {
-                    document.getElementById('content').innerHTML = "<p style='text-align:center; padding:20px;'>今日の課題は18時に公開されるぜ！待ってな！</p>";
+                    document.getElementById('content').innerHTML = "<p style='text-align:center; padding:20px;'>今日の課題は18時に公開されるぜ！</p>";
                     return;
                 }
-
                 dates.forEach((d, i) => {
                     const btn = document.createElement('button');
                     btn.className = 'date-tab'; btn.innerText = d;
-                    btn.onclick = () => {
-                        document.querySelectorAll('.date-tab').forEach(t => t.classList.remove('active'));
-                        btn.classList.add('active'); render(d);
-                    };
+                    btn.onclick = () => { document.querySelectorAll('.date-tab').forEach(t => t.classList.remove('active')); btn.classList.add('active'); render(d); };
                     menu.appendChild(btn);
                     if(i===0) btn.click();
                 });
@@ -144,22 +110,21 @@
                     const en = row[j]?.trim();
                     const jp = row[j+1]?.trim();
                     if (!en || en.length < 2) continue;
-                    // 問題を特定するユニークなIDを作成 (日付 + 行番号 + 列番号)
                     const id = `${date}-${rowIndex}-${j}`;
-                    items += `
+                    items += `<div class="practice-card">
                         <div class="phrase-item">
                             <span class="jp-text">${jp}</span>
                             <div class="word-tap-area" id="area-${id}">${en.split(' ').map(w => `<span class="word-chip" data-orig="${w}" onclick="play('${w.replace(/'/g,"")}')">${w}</span>`).join('')}</div>
                             <div class="voice-section">
-                                <span class="voice-label">キミの英語（ネイティブはこう聞こえている）</span>
+                                <span class="voice-label">キミの英語（リアルタイム表示中）</span>
                                 <div class="voice-text" id="fb-${id}">...</div>
                                 <div class="score-display" id="sc-${id}"></div>
                             </div>
                             <button class="speak-btn" id="btn-${id}" onclick="startCheck('${en.replace(/'/g,"\\'")}', '${id}')">🎤 判定スタート</button>
                             <div class="advice-box" id="ad-${id}"></div>
-                        </div>`;
+                        </div></div>`;
                 }
-                container.innerHTML += `<div class="practice-card">${items}</div>`;
+                container.innerHTML += items;
             });
         }
 
@@ -171,36 +136,51 @@
         function startCheck(target, id) {
             const btn = document.getElementById(`btn-${id}`);
             const fb = document.getElementById(`fb-${id}`);
-            if (recognition) { isUserStop = true; recognition.stop(); return; }
-            isUserStop = false;
-            btn.classList.add('recording'); btn.innerText = "停止して判定";
+            
+            if (recognition) { recognition.stop(); return; }
+
             fb.innerText = "聞き取り中...";
+            btn.classList.add('recording');
+            btn.innerText = "停止して判定";
+
             recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
             recognition.lang = 'en-US';
+            recognition.interimResults = true; // リアルタイム表示を有効化
+            recognition.continuous = false;
+
             recognition.onresult = (e) => {
-                const result = e.results[0][0].transcript;
-                fb.innerText = result;
-                judge(target, result, id);
+                const transcript = Array.from(e.results).map(result => result[0].transcript).join('');
+                fb.innerText = transcript;
+                if (e.results[0].isFinal) {
+                    judge(target, transcript, id);
+                }
             };
+
             recognition.onend = () => {
-                btn.classList.remove('recording'); btn.innerText = "🎤 判定スタート";
-                if (isUserStop && fb.innerText === "聞き取り中...") fb.innerText = "...";
+                btn.classList.remove('recording');
+                btn.innerText = "🎤 判定スタート";
                 recognition = null;
             };
+
+            recognition.onerror = () => {
+                fb.innerText = "エラーが発生したぜ。もう一度試してくれ。";
+                btn.classList.remove('recording');
+            };
+
             recognition.start();
         }
 
         function judge(target, result, id) {
             const tWords = target.toLowerCase().replace(/[.!?,]/g, "").split(' ');
             const rWords = result.toLowerCase().split(' ');
-            const area = document.getElementById(`area-${id}`);
-            const chips = area.querySelectorAll('.word-chip');
+            const chips = document.getElementById(`area-${id}`).querySelectorAll('.word-chip');
             const targetKeys = Object.keys(tips).sort((a,b) => b.length - a.length);
             let correctCount = 0;
             let firstMissedKey = null;
 
             tWords.forEach((tw, i) => {
                 const chip = chips[i];
+                if (!chip) return;
                 const originalText = chip.getAttribute('data-orig');
                 if (rWords.includes(tw)) {
                     chip.className = 'word-chip perfect';
@@ -211,8 +191,7 @@
                     let highlighted = originalText;
                     for(let k of targetKeys) {
                         if(tw.includes(k)) {
-                            const regex = new RegExp(`(${k})`, 'gi');
-                            highlighted = originalText.replace(regex, `<b>$1</b>`);
+                            highlighted = originalText.replace(new RegExp(`(${k})`, 'gi'), `<b>$1</b>`);
                             if(!firstMissedKey) firstMissedKey = k;
                             break; 
                         }
@@ -223,19 +202,13 @@
 
             const score = Math.round((correctCount / tWords.length) * 100);
             stats.data.total++;
-            
-            // 70点以上かつ、初めて合格した問題の場合のみ累計に加算
-            if (score >= 70) {
-                stats.addPass(id); 
-                if(score === 100) confetti();
-            }
+            if (score >= 70) { stats.addPass(id); if(score === 100) confetti(); }
             stats.save();
 
             document.getElementById(`sc-${id}`).innerHTML = `<span class="score-val" style="color:${score>=70?'#00C853':'#FF9800'}">${score}点</span>`;
             const ad = document.getElementById(`ad-${id}`);
-            let tipMsg = score >= 70 ? "合格！その調子だ。" : "もう少しハッキリ発音してみよう！";
-            if (score < 100 && firstMissedKey) tipMsg = `💡アドバイス：${firstMissedKey.toUpperCase()}の音が苦手かも？<br>${tips[firstMissedKey]}`;
-            ad.innerHTML = tipMsg; ad.style.display = "block";
+            ad.innerHTML = score >= 70 ? "合格！" : (firstMissedKey ? `💡アドバイス: ${tips[firstMissedKey]}` : "もう少しハッキリ！");
+            ad.style.display = "block";
         }
 
         init();
