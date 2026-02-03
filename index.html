@@ -62,28 +62,17 @@
         let currentRecognition = null;
         let isAborted = false;
 
-        // 【修正】発音アドバイス20種類
         const tips = {
-            'th': "前歯で舌を軽く噛んで！",
-            'l': "舌先を前歯の裏の付け根に押し当てて！",
-            'r': "舌をどこにも付けずに奥に引け！",
-            'v': "下唇を噛んで振動させるんだ！",
-            'f': "下唇を噛んで息を強く吐き出せ！",
-            's': "歯の間から鋭く息を漏らせ！",
-            'sh': "静かにさせる時の『シー！』の口だ！",
-            'ae': "アとエの中間！口を横に引け！",
-            'ou': "最後はしっかり『ゥ』で閉じろ！",
-            'ei': "『エ』を強く、滑らかに『イ』へ！",
-            'w': "唇を思いっきり丸めて突き出せ！",
-            'z': "『ス』の音を喉で震わせろ！",
-            'ch': "口を尖らせて短く『チッ』だ！",
-            'dg': "日本語の『ジ』より強く粘れ！",
-            'm': "唇をしっかり閉じて鼻から抜け！",
-            'n': "舌を上顎にべったり付けて止めろ！",
-            'ng': "鼻の奥を塞いで鳴らせ！",
-            't': "舌先を弾いて鋭く破裂させろ！",
-            'd': "喉を鳴らして力強く弾け！",
-            'b': "溜めた息を一気に爆発させろ！"
+            'th': "前歯で舌を軽く噛んで！", 'l': "舌先を前歯の裏の付け根に押し当てて！",
+            'r': "舌をどこにも付けずに奥に引け！", 'v': "下唇を噛んで振動させるんだ！",
+            'f': "下唇を噛んで息を強く吐き出せ！", 's': "歯の間から鋭く息を漏らせ！",
+            'sh': "静かにさせる時の『シー！』の口だ！", 'ae': "アとエの中間！口を横に引け！",
+            'ou': "最後はしっかり『ゥ』で閉じろ！", 'ei': "『エ』を強く、滑らかに『イ』へ！",
+            'w': "唇を思いっきり丸めて突き出せ！", 'z': "『ス』の音を喉で震わせろ！",
+            'ch': "口を尖らせて短く『チッ』だ！", 'dg': "日本語の『ジ』より強く粘れ！",
+            'm': "唇をしっかり閉じて鼻から抜け！", 'n': "舌を上顎にべったり付けて止めろ！",
+            'ng': "鼻の奥を塞いで鳴らせ！", 't': "舌先を弾いて鋭く破裂させろ！",
+            'd': "喉を鳴らして力強く弾け！", 'b': "溜めた息を一気に爆発させろ！"
         };
 
         const scoreMsgs = [
@@ -160,7 +149,6 @@
 
         function highlightMissedWord(word) {
             let processed = word;
-            // キーが長い順に処理して誤爆を防ぐ
             const keys = Object.keys(tips).sort((a,b) => b.length - a.length);
             keys.forEach(key => {
                 const reg = new RegExp(`(${key})`, 'gi');
@@ -193,19 +181,24 @@
             fb.innerText = "...";
             status.style.display = "inline";
 
-            const rec = new (window.SpeechRecognition || window.webkitRecognition)();
+            const rec = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
             currentRecognition = rec;
             rec.lang = 'en-US';
-            rec.interimResults = true;
+            rec.interimResults = true; // これをtrueに！
 
             rec.onresult = (e) => {
                 if (isAborted) return;
+                let interimTranscript = '';
                 let finalTranscript = '';
                 for (let i = e.resultIndex; i < e.results.length; ++i) {
                     if (e.results[i].isFinal) finalTranscript += e.results[i][0].transcript;
+                    else interimTranscript += e.results[i][0].transcript;
                 }
+                
+                // リアルタイムで表示を更新
+                fb.innerText = finalTranscript || interimTranscript;
+
                 if (finalTranscript !== '') {
-                    fb.innerText = finalTranscript;
                     processFinalResult(finalTranscript, targetRaw, id);
                     rec.stop();
                 }
