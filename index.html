@@ -1,6 +1,14 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-CLFZXXHWZQ"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-CLFZXXHWZQ');
+    </script>
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>K高-英語チェック</title>
@@ -35,8 +43,8 @@
         .score-display { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); text-align: center; width: 100px; }
         .score-val { font-size: 1.7rem; font-weight: 900; display: block; line-height: 1; }
         .score-status { font-size: 0.65rem; font-weight: bold; margin-top: 3px; display: block; }
-        .speak-btn { width: 100%; background: var(--primary); color: white; border: none; padding: 18px; border-radius: 35px; cursor: pointer; font-weight: bold; font-size: 1.2rem; margin-top: 15px; box-shadow: 0 6px 0 #E68A00; }
-        .speak-btn.recording { background: #d63031 !important; animation: pulse-ring 1.25s infinite; }
+        .speak-btn { width: 100%; background: var(--primary); color: white; border: none; padding: 18px; border-radius: 35px; cursor: pointer; font-weight: bold; font-size: 1.2rem; margin-top: 15px; box-shadow: 0 6px 0 #E68A00; outline:none; }
+        .speak-btn.recording { background: #d63031 !important; animation: pulse-ring 1.25s infinite; box-shadow: 0 6px 0 #9b2020; }
         @keyframes pulse-ring { 0% { box-shadow: 0 0 0 0 rgba(214, 48, 49, 0.7); } 70% { box-shadow: 0 0 0 15px rgba(214, 48, 49, 0); } 100% { box-shadow: 0 0 0 0 rgba(214, 48, 49, 0); } }
         .advice-box { margin-top: 12px; background: #fff9db; padding: 15px; border-radius: 12px; font-size: 0.85rem; border-left: 5px solid #fcc419; display: none; color: #333; line-height: 1.5; }
     </style>
@@ -51,9 +59,7 @@
     <div id="content">読み込み中...</div>
 
     <script>
-        // 【設定】CSVのURLをここに貼り付けてくれ
         const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRAWmRJRNgjq3OtDdRPDvf3uXywGfHW6_saJSkox9Q0jHOUrg9RzjYCMcCeB8r5aesQUPJo1p1Lvbbm/pub?gid=0&single=true&output=csv';
-
         let allData = [];
         let sessionStats = { total: 0, pass: 0 };
 
@@ -63,18 +69,23 @@
             'l': "『L』は舌先を前歯の裏に！", 'r': "『R』は舌をどこにも触れさせず奥へ！",
             'v': "『V』は下唇を上の歯で軽く押さえて！", 'f': "『F』は前歯と下唇の間から息を漏らして！",
             's': "『S』は鋭く息を吐き出して！", 't': "語尾の『T』は息だけで止めて！", 'd': "語尾の『D』は軽く弾いて！",
-            'w': "『W』は口を突き出して！", 'z': "『Z』は蜂の羽音のような振動！",
-            'a': "『A』は口を横に引きながら！", 'o': "『O』は口を縦に大きく！", 'i': "『I』は口を横に強く引き短く！",
-            'u': "『U』は唇をリラックス！", 'e': "『E』は日本語の『エ』より広げて！", 'y': "『Y』は粘っこくスタート！"
+            'w': "『W』は口を突き出して！", 'z': "『Z』は蜂の羽音のような振動！"
         };
-
         const scoreMsgs = ["不合格","判定不能","声出せ！","甘すぎる","カタカナ卒業","あと一歩","合格ライン","合格！","完璧！","神！","伝説！"];
+
+        // CSV分割用：カンマを考慮したパース
+        function parseCSV(text) {
+            return text.split(/\r?\n/).filter(line => line.trim() !== "").map(line => {
+                const matches = line.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g);
+                return matches ? matches.map(m => m.replace(/^"|"$/g, '')) : line.split(',');
+            });
+        }
 
         async function loadData() {
             try {
                 const res = await fetch(csvUrl);
                 const text = await res.text();
-                allData = text.split(/\r?\n/).filter(line => line.trim() !== "").map(r => r.split(','));
+                allData = parseCSV(text);
                 createMenu();
             } catch (e) { document.getElementById('content').innerHTML = "CSV読み込み失敗"; }
         }
@@ -92,7 +103,6 @@
                 return false;
             }).sort((a, b) => b.localeCompare(a));
 
-            menu.innerHTML = '';
             if (dates.length === 0) {
                 document.getElementById('content').innerHTML = '<div style="text-align:center; padding:20px;">本日の課題は18時に解禁されるぜ。</div>';
                 return;
@@ -143,6 +153,7 @@
         }
 
         function speak(t) {
+            window.speechSynthesis.cancel();
             const u = new SpeechSynthesisUtterance(t);
             u.lang = 'en-US'; u.rate = 0.8;
             window.speechSynthesis.speak(u);
@@ -169,80 +180,98 @@
             const scArea = document.getElementById(`sc-${id}`);
             const ad = document.getElementById(`ad-${id}`);
 
+            if (btn.classList.contains('recording')) return;
+
             btn.classList.add('recording');
             btn.innerText = "聴き取り中...";
 
-            const rec = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+            const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!Recognition) {
+                alert("このブラウザは音声認識に対応してないぜ。ChromeかSafariを使ってくれ。");
+                return;
+            }
+            const rec = new Recognition();
             rec.lang = 'en-US';
-            rec.maxAlternatives = 1;
+            rec.interimResults = true;
 
             rec.onresult = (e) => {
-                btn.classList.remove('recording');
-                btn.innerText = "🎤 判定スタート";
                 const res = e.results[0][0];
-                const speechRaw = res.transcript.toLowerCase();
-                const confidence = res.confidence;
-
-                const sWords = speechRaw.replace(/[.!?,]/g, "").split(/\s+/);
-                const tWordsDisplay = targetRaw.split(/\s+/);
-                const tWordsMatch = targetRaw.toLowerCase().replace(/[.!?,]/g, "").split(/\s+/);
-
-                let correctCount = 0;
-                let html = "";
-                let hasMiss = false;
-                let missedChars = "";
-
-                tWordsMatch.forEach((tw, idx) => {
-                    const originalWord = tWordsDisplay[idx];
-                    const isMatched = sWords.includes(tw);
-                    const threshold = tw.length <= 2 ? 0.65 : 0.75;
-                    const isClear = isMatched && (confidence > threshold);
-
-                    if(isClear) {
-                        html += `<span class="word-chip perfect" onclick="speak('${tw}')">${originalWord}</span> `;
-                        correctCount++;
-                    } else {
-                        const styledWord = highlightMissedWord(originalWord);
-                        html += `<span class="word-chip miss" onclick="speak('${tw}')">${styledWord}</span> `;
-                        missedChars += tw;
-                        hasMiss = true;
-                    }
-                });
-
-                area.innerHTML = html;
-                // アイデア2：AIが聞き取った生のテキストを表示
                 fb.innerText = res.transcript;
-
-                const extra = Math.max(0, sWords.length - tWordsMatch.length);
-                let score = Math.round((correctCount / tWordsMatch.length) * 100) - (extra * 10);
-                if (score < 0) score = 0;
-
-                const isPass = score >= 70;
-                sessionStats.total++;
-                if(isPass) sessionStats.pass++;
-                document.getElementById('totalCount').innerText = sessionStats.total;
-                document.getElementById('passCount').innerText = sessionStats.pass;
-
-                const color = isPass ? "#00C853" : "#FF9800";
-                scArea.innerHTML = `<span class="score-val" style="color:${color}">${score}点</span><span class="score-status" style="color:${color}">${scoreMsgs[Math.floor(score/10)] || "不合格"}</span>`;
-                
-                if(isPass && !hasMiss && extra === 0) {
-                    confetti(); ad.style.display = "none";
-                } else {
-                    let tipText = "";
-                    if (extra > 0) tipText += `<b>余計な音が入ってるぜ！</b><br>`;
-                    if (hasMiss) {
-                        const keys = Object.keys(tips).sort((a,b) => b.length - a.length);
-                        for(let key of keys) {
-                            if(missedChars.includes(key)) { tipText += `💡${key.toUpperCase()}のコツ：${tips[key]}<br>`; break; }
-                        }
-                    }
-                    ad.innerHTML = tipText || "ハッキリ発音してみよう！";
-                    ad.style.display = "block";
+                if (e.results[0].isFinal) {
+                    processResult(res, targetRaw, id, btn, area, scArea, ad);
                 }
             };
-            rec.onerror = () => { btn.classList.remove('recording'); btn.innerText = "エラー（もう一度）"; };
+
+            rec.onerror = () => { 
+                btn.classList.remove('recording'); 
+                btn.innerText = "🎤 判定スタート"; 
+            };
+            
+            rec.onspeechend = () => { rec.stop(); };
             rec.start();
+        }
+
+        function processResult(res, targetRaw, id, btn, area, scArea, ad) {
+            btn.classList.remove('recording');
+            btn.innerText = "🎤 判定スタート";
+            
+            const speechRaw = res.transcript.toLowerCase();
+            const confidence = res.confidence;
+            const sWords = speechRaw.replace(/[.!?,]/g, "").split(/\s+/);
+            const tWordsDisplay = targetRaw.split(/\s+/);
+            const tWordsMatch = targetRaw.toLowerCase().replace(/[.!?,]/g, "").split(/\s+/);
+
+            let correctCount = 0;
+            let html = "";
+            let hasMiss = false;
+            let missedChars = "";
+
+            tWordsMatch.forEach((tw, idx) => {
+                const originalWord = tWordsDisplay[idx];
+                const isMatched = sWords.includes(tw);
+                const threshold = tw.length <= 2 ? 0.6 : 0.7;
+                const isClear = isMatched && (confidence > threshold);
+
+                if(isClear) {
+                    html += `<span class="word-chip perfect" onclick="speak('${tw}')">${originalWord}</span> `;
+                    correctCount++;
+                } else {
+                    html += `<span class="word-chip miss" onclick="speak('${tw}')">${highlightMissedWord(originalWord)}</span> `;
+                    missedChars += tw;
+                    hasMiss = true;
+                }
+            });
+
+            area.innerHTML = html;
+            let score = Math.round((correctCount / tWordsMatch.length) * 100);
+            const isPass = score >= 70;
+            
+            sessionStats.total++;
+            if(isPass) sessionStats.pass++;
+            document.getElementById('totalCount').innerText = sessionStats.total;
+            document.getElementById('passCount').innerText = sessionStats.pass;
+
+            const color = isPass ? "#00C853" : "#FF9800";
+            scArea.innerHTML = `<span class="score-val" style="color:${color}">${score}点</span><span class="score-status" style="color:${color}">${scoreMsgs[Math.floor(score/10)] || "不合格"}</span>`;
+
+            // GA4に「判定が行われた」イベントを送信
+            gtag('event', 'speech_check', {
+                'event_category': 'practice',
+                'event_label': targetRaw,
+                'value': score
+            });
+
+            if(isPass && !hasMiss) {
+                confetti(); ad.style.display = "none";
+            } else {
+                let tipText = "";
+                const keys = Object.keys(tips).sort((a,b) => b.length - a.length);
+                for(let key of keys) {
+                    if(missedChars.includes(key)) { tipText += `💡${key.toUpperCase()}のコツ：${tips[key]}<br>`; break; }
+                }
+                ad.innerHTML = tipText || "もっとハッキリ、ネイティブになりきって！";
+                ad.style.display = "block";
+            }
         }
         loadData();
     </script>
