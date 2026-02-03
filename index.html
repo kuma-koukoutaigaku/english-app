@@ -12,10 +12,11 @@
         :root { --primary: #FF9800; --secondary: #1a237e; --bg: #F0F4F8; --perfect: #00C853; --miss: #ff4757; }
         body { font-family: sans-serif; background: var(--bg); margin: 0; padding: 10px; padding-bottom: 50px; -webkit-tap-highlight-color: transparent; }
         
+        /* 完璧だった頃のデザイン */
         .header-area { text-align: center; margin-bottom: 5px; }
         .main-title { font-family: 'Noto Serif JP', serif; font-size: 1.2rem; color: var(--secondary); border-bottom: 3px solid var(--primary); display: inline-block; margin: 10px 0; }
-        
-        .video-link-btn { display: block; background: #ff0000; color: white; text-decoration: none; padding: 10px; border-radius: 8px; text-align: center; font-weight: bold; margin: 10px 0; font-size: 0.9rem; }
+        .video-btn-wrapper { text-align: center; margin-bottom: 15px; }
+        .video-link-btn { display: inline-block; background: #ff0000; color: white; text-decoration: none; padding: 8px 16px; border-radius: 20px; font-weight: bold; font-size: 0.85rem; box-shadow: 0 4px 0 #b30000; }
 
         .stats-bar { background: #fff; border-radius: 12px; padding: 8px 10px; margin: 10px 0; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
         .stats-main { flex-grow: 1; display: flex; justify-content: center; gap: 10px; font-weight: bold; font-size: 0.85rem; white-space: nowrap; }
@@ -55,13 +56,13 @@
         <div style="width:40px"></div>
         <div class="stats-main">
             <div class="stats-item">🔥 挑戦: <span id="totalCount">0</span>回</div>
-            <div class="stats-item">🏆 合格: <span id="passCount">0</span>個</div>
+            <div class="stats-item">🏆 合格: <span id="passCount">0</span>回</div>
         </div>
         <button class="reset-btn" onclick="resetStats()">リセット</button>
     </div>
 
     <div id="dateMenu" class="menu-container"></div>
-    <div id="videoContainer"></div>
+    <div id="videoSection"></div>
     <div id="content"></div>
 
     <script>
@@ -70,22 +71,22 @@
         let isRecording = false;
 
         const tips = {
-            'th': "【th】舌を上下の歯で軽く挟んで、その隙間から息を出すぜ！",'r': "【r】舌をどこにも付けずに、奥の方にグッと丸めて発音してみて！",'l': "【l】舌先を上の前歯の裏にしっかり押し当てて音を出そうぜ！",'v': "【v】上の前歯で下唇を軽く噛んで、震わせるように音を出して！",'f': "【f】上の前歯で下唇を軽く押さえて、隙間からフーッと息を吹くぜ！",
-            'sh': "【sh】静かにしてほしい時の「シー」の口で、強く息を出してみて！",'ae': "【a】「ア」と「エ」の中間くらいの音で、口を横に広げて発音だ！",'ee': "【ee】口を思いっきり横に引いて、イーと長めに伸ばしてみて！",'ght': "【ght】この部分はほとんど発音せず、前の音を繋げるイメージだぜ！",'ing': "【ing】鼻から音を抜くように「ン」と意識してみて！",
-            's': "【s】歯を閉じて、その隙間から勢いよく息を漏らすんだぜ！",'z': "【z】「ス」の口のまま、喉の奥を震わせてズーッと音を出して！",'w': "【w】口を尖らせて「ウ」の形にしてから、一気に広げて発音だ！",'ch': "【ch】「チッ」と鋭く短く、空気を弾くように出してみて！",'dg': "【dg】喉の奥の方で「ヂ」と重たく響かせるイメージだぜ！",
-            'ph': "【ph】綴りは違うけど、fと全く同じ発音でOK。下唇を噛もう！",'ea': "【ea】口を横に緊張させて、しっかり「イー」と伸ばして！",'ou': "【ou】「ア」から「ウ」へ滑らかに繋げて「アウ」だ！",'ow': "【ow】痛い時の「アウ！」みたいに、口を大きく動かそうぜ！",'ar': "【ar】「ア」と言いながら、すぐに舌を奥に引き込んでrの音へ！"
+            'th': "【th】舌を挟んで息を出せ",'r': "【r】舌をどこにも付けず奥に丸めろ",'l': "【l】舌先を前歯の裏に押し当てろ",'v': "【v】下唇を噛んで震わせろ",'f': "【f】下唇を噛んで息を吹け",
+            'sh': "【sh】「シー」の口で強く息を出せ",'ae': "【a】「ア」と「エ」の中間。口を横に広げろ",'ee': "【ee】横に引いてイーと伸ばせ",'ght': "【ght】発音せず前の音を繋げろ",'ing': "【ing】鼻から音を抜け",
+            's': "【s】歯を閉じ隙間から息を漏らせ",'z': "【z】喉の奥を震わせてズーと出せ",'w': "【w】口を尖らせて一気に広げろ",'ch': "【ch】「チッ」と鋭く空気を弾け",'dg': "【dg】喉の奥で「ヂ」と響かせろ",
+            'ph': "【ph】fと同じ。下唇を噛め",'ea': "【ea】横に緊張させてイーと伸ばせ",'ou': "【ou】アからウへ滑らかに繋げろ",'ow': "【ow】「アウ！」と口を大きく動かせ",'ar': "【ar】アと言いながら舌を奥に引き込め"
         };
 
         const stats = {
-            data: JSON.parse(localStorage.getItem('kHighStats_v12')) || { total: 0, pass: 0, passedIds: [] },
+            data: JSON.parse(localStorage.getItem('kHighStats_v13')) || { total: 0, pass: 0, passedIds: [] },
             save() {
-                localStorage.setItem('kHighStats_v12', JSON.stringify(this.data));
+                localStorage.setItem('kHighStats_v13', JSON.stringify(this.data));
                 document.getElementById('totalCount').innerText = this.data.total;
                 document.getElementById('passCount').innerText = this.data.pass;
             }
         };
 
-        function resetStats() { if(confirm("記録をリセットするぜ？")) { localStorage.removeItem('kHighStats_v12'); location.reload(); } }
+        function resetStats() { if(confirm("リセットする？")) { localStorage.removeItem('kHighStats_v13'); location.reload(); } }
 
         async function init() {
             stats.save();
@@ -120,13 +121,13 @@
 
         function render(allData, date) {
             const container = document.getElementById('content');
-            const videoContainer = document.getElementById('videoContainer');
+            const videoSection = document.getElementById('videoSection');
             container.innerHTML = '';
-            videoContainer.innerHTML = '';
+            videoSection.innerHTML = '';
 
             const dayRows = allData.filter(r => r[0] === date);
             if(dayRows[0] && dayRows[0][1]) {
-                videoContainer.innerHTML = `<a href="${dayRows[0][1]}" target="_blank" class="video-link-btn">📺 この日のショート動画を見る</a>`;
+                videoSection.innerHTML = `<div class="video-btn-wrapper"><a href="${dayRows[0][1]}" target="_blank" class="video-link-btn">📺 この日のショート動画を見る</a></div>`;
             }
 
             dayRows.forEach((row, rowIndex) => {
@@ -182,7 +183,7 @@
             const tWords = target.split(/\s+/);
             const chips = document.getElementById(`area-${id}`).querySelectorAll('.word-chip');
             let matchCount = 0; 
-            let feedbackItems = [];
+            let foundTips = [];
 
             tWords.forEach((origW, i) => {
                 const cleanT = clean(origW);
@@ -192,15 +193,12 @@
                 } else {
                     chip.className = 'word-chip miss';
                     let disp = origW;
-                    let hasMatch = false;
                     for (let key in tips) {
                         if (cleanT.includes(key)) {
                             disp = disp.replace(new RegExp(key, 'gi'), `<b>$&</b>`);
-                            feedbackItems.push(tips[key]);
-                            hasMatch = true;
+                            foundTips.push(tips[key]);
                         }
                     }
-                    if(!hasMatch) feedbackItems.push("全体をもう少しハッキリ発音してみようぜ！");
                     chip.innerHTML = disp;
                 }
             });
@@ -211,13 +209,16 @@
             
             const ad = document.getElementById(`ad-${id}`);
             if (score >= 90) {
-                ad.innerHTML = "✨ <strong>Perfect!</strong> その調子だぜ！";
+                ad.innerHTML = "✨ Perfect!";
+                ad.style.display = "block";
+            } else if (foundTips.length > 0) {
+                // 重複削除して、上から2つだけ抽出
+                const uniqueTips = [...new Set(foundTips)].slice(0, 2);
+                ad.innerHTML = uniqueTips.map(t => `・${t}`).join('<br>');
+                ad.style.display = "block";
             } else {
-                // 重複削除して表示
-                const uniqueFeedback = [...new Set(feedbackItems)];
-                ad.innerHTML = uniqueFeedback.map(item => `・${item}`).join('<br>');
+                ad.style.display = "none";
             }
-            ad.style.display = "block";
 
             if (score >= 90 && !stats.data.passedIds.includes(id)) {
                 stats.data.pass++; stats.data.passedIds.push(id);
