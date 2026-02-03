@@ -12,11 +12,13 @@
         :root { --primary: #FF9800; --secondary: #1a237e; --bg: #F0F4F8; --perfect: #00C853; --miss: #ff4757; }
         body { font-family: sans-serif; background: var(--bg); margin: 0; padding: 10px; padding-bottom: 50px; -webkit-tap-highlight-color: transparent; }
         
-        /* 完璧だった頃のデザイン */
         .header-area { text-align: center; margin-bottom: 5px; }
         .main-title { font-family: 'Noto Serif JP', serif; font-size: 1.2rem; color: var(--secondary); border-bottom: 3px solid var(--primary); display: inline-block; margin: 10px 0; }
-        .video-btn-wrapper { text-align: center; margin-bottom: 15px; }
-        .video-link-btn { display: inline-block; background: #ff0000; color: white; text-decoration: none; padding: 8px 16px; border-radius: 20px; font-weight: bold; font-size: 0.85rem; box-shadow: 0 4px 0 #b30000; }
+        
+        /* タイトルと動画エリア */
+        .day-header { text-align: center; margin-bottom: 15px; }
+        .video-title { font-weight: bold; font-size: 1.1rem; color: #333; margin-bottom: 8px; display: block; }
+        .video-link-btn { display: inline-block; background: #ff0000; color: white; text-decoration: none; padding: 6px 14px; border-radius: 20px; font-weight: bold; font-size: 0.8rem; box-shadow: 0 3px 0 #b30000; }
 
         .stats-bar { background: #fff; border-radius: 12px; padding: 8px 10px; margin: 10px 0; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
         .stats-main { flex-grow: 1; display: flex; justify-content: center; gap: 10px; font-weight: bold; font-size: 0.85rem; white-space: nowrap; }
@@ -62,31 +64,34 @@
     </div>
 
     <div id="dateMenu" class="menu-container"></div>
-    <div id="videoSection"></div>
+    <div id="dayHeaderArea"></div>
     <div id="content"></div>
 
     <script>
         const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRAWmRJRNgjq3OtDdRPDvf3uXywGfHW6_saJSkox9Q0jHOUrg9RzjYCMcCeB8r5aesQUPJo1p1Lvbbm/pub?gid=0&single=true&output=csv';
         let recognition = null;
         let isRecording = false;
+        let currentTarget = "";
+        let currentId = "";
+        let finalTranscript = "";
 
         const tips = {
             'th': "【th】舌を挟んで息を出せ",'r': "【r】舌をどこにも付けず奥に丸めろ",'l': "【l】舌先を前歯の裏に押し当てろ",'v': "【v】下唇を噛んで震わせろ",'f': "【f】下唇を噛んで息を吹け",
-            'sh': "【sh】「シー」の口で強く息を出せ",'ae': "【a】「ア」と「エ」の中間。口を横に広げろ",'ee': "【ee】横に引いてイーと伸ばせ",'ght': "【ght】発音せず前の音を繋げろ",'ing': "【ing】鼻から音を抜け",
-            's': "【s】歯を閉じ隙間から息を漏らせ",'z': "【z】喉の奥を震わせてズーと出せ",'w': "【w】口を尖らせて一気に広げろ",'ch': "【ch】「チッ」と鋭く空気を弾け",'dg': "【dg】喉の奥で「ヂ」と響かせろ",
-            'ph': "【ph】fと同じ。下唇を噛め",'ea': "【ea】横に緊張させてイーと伸ばせ",'ou': "【ou】アからウへ滑らかに繋げろ",'ow': "【ow】「アウ！」と口を大きく動かせ",'ar': "【ar】アと言いながら舌を奥に引き込め"
+            'sh': "【sh】「シー」の口で強く息を出せ",'ae': "【a】口を横に広げろ",'ee': "【ee】横に引いてイーと伸ばせ",'ght': "【ght】前の音を繋げろ",'ing': "【ing】鼻から音を抜け",
+            's': "【s】歯を閉じ隙間から息を漏らせ",'z': "【z】喉の奥を震わせろ",'w': "【w】口を尖らせ一気に広げろ",'ch': "【ch】鋭く空気を弾け",'dg': "【dg】喉の奥で響かせろ",
+            'ph': "【ph】下唇を噛め",'ea': "【ea】イーと伸ばせ",'ou': "【ou】アからウへ繋げろ",'ow': "【ow】口を大きく動かせ",'ar': "【ar】舌を奥に引き込め"
         };
 
         const stats = {
-            data: JSON.parse(localStorage.getItem('kHighStats_v13')) || { total: 0, pass: 0, passedIds: [] },
+            data: JSON.parse(localStorage.getItem('kHighStats_v14')) || { total: 0, pass: 0, passedIds: [] },
             save() {
-                localStorage.setItem('kHighStats_v13', JSON.stringify(this.data));
+                localStorage.setItem('kHighStats_v14', JSON.stringify(this.data));
                 document.getElementById('totalCount').innerText = this.data.total;
                 document.getElementById('passCount').innerText = this.data.pass;
             }
         };
 
-        function resetStats() { if(confirm("リセットする？")) { localStorage.removeItem('kHighStats_v13'); location.reload(); } }
+        function resetStats() { if(confirm("リセットする？")) { localStorage.removeItem('kHighStats_v14'); location.reload(); } }
 
         async function init() {
             stats.save();
@@ -96,13 +101,9 @@
             
             const now = new Date();
             const todayStr = `${now.getFullYear()}/${(now.getMonth()+1).toString().padStart(2,'0')}/${now.getDate().toString().padStart(2,'0')}`;
-            const currentHour = now.getHours();
-
             const visibleData = rawRows.slice(1).filter(r => {
                 const rowDate = r[0].replace(/-/g, '/');
-                if (rowDate < todayStr) return true;
-                if (rowDate === todayStr && currentHour >= 18) return true;
-                return false;
+                return rowDate < todayStr || (rowDate === todayStr && now.getHours() >= 18);
             });
 
             const dates = [...new Set(visibleData.map(r => r[0]))].filter(d => d).sort((a,b) => b.localeCompare(a));
@@ -110,25 +111,25 @@
             dates.forEach((d, i) => {
                 const btn = document.createElement('button');
                 btn.className = 'date-tab'; btn.innerText = d;
-                btn.onclick = () => { 
-                    document.querySelectorAll('.date-tab').forEach(t => t.classList.remove('active')); 
-                    btn.classList.add('active'); 
-                    render(visibleData, d); 
-                };
+                btn.onclick = () => { document.querySelectorAll('.date-tab').forEach(t => t.classList.remove('active')); btn.classList.add('active'); render(visibleData, d); };
                 menu.appendChild(btn); if(i === 0) btn.click();
             });
         }
 
         function render(allData, date) {
             const container = document.getElementById('content');
-            const videoSection = document.getElementById('videoSection');
+            const headerArea = document.getElementById('dayHeaderArea');
             container.innerHTML = '';
-            videoSection.innerHTML = '';
-
+            
             const dayRows = allData.filter(r => r[0] === date);
-            if(dayRows[0] && dayRows[0][1]) {
-                videoSection.innerHTML = `<div class="video-btn-wrapper"><a href="${dayRows[0][1]}" target="_blank" class="video-link-btn">📺 この日のショート動画を見る</a></div>`;
-            }
+            const title = dayRows[0][11] || "今日の英語チェック"; // 12列目(L)にタイトルがあると想定
+            const videoUrl = dayRows[0][1];
+
+            headerArea.innerHTML = `
+                <div class="day-header">
+                    <span class="video-title">${title}</span>
+                    <a href="${videoUrl}" target="_blank" class="video-link-btn">📺 ショート動画を見る</a>
+                </div>`;
 
             dayRows.forEach((row, rowIndex) => {
                 for (let j = 2; j <= 10; j += 2) {
@@ -153,27 +154,45 @@
         function play(t) { const u = new SpeechSynthesisUtterance(t); u.lang = 'en-US'; window.speechSynthesis.speak(u); }
 
         function toggleSpeech(target, id) {
-            if (isRecording) { recognition.stop(); return; }
-            startCheck(target, id);
+            if (isRecording) {
+                recognition.stop(); // ここでonendが呼ばれ、その中でjudgeが走る
+                return;
+            }
+            currentTarget = target;
+            currentId = id;
+            startCheck();
         }
 
-        function startCheck(target, id) {
-            const btn = document.getElementById(`btn-${id}`);
-            const fb = document.getElementById(`fb-${id}`);
+        function startCheck() {
+            const btn = document.getElementById(`btn-${currentId}`);
+            const fb = document.getElementById(`fb-${currentId}`);
             fb.innerText = "";
+            finalTranscript = "";
+
             recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
             recognition.lang = 'en-US';
             recognition.interimResults = true;
-            recognition.onstart = () => { isRecording = true; btn.classList.add('recording'); btn.innerText = "停止"; };
+            recognition.continuous = false;
+
+            recognition.onstart = () => { isRecording = true; btn.classList.add('recording'); btn.innerText = "停止（ここで判定）"; };
+            
             recognition.onresult = (e) => {
-                const transcript = Array.from(e.results).map(res => res[0].transcript).join('');
-                fb.innerText = transcript;
-                if (e.results[0].isFinal) { judge(target, transcript, id); recognition.stop(); }
+                finalTranscript = Array.from(e.results).map(res => res[0].transcript).join('');
+                fb.innerText = finalTranscript;
             };
+
             recognition.onend = () => { 
-                isRecording = false; btn.classList.remove('recording'); btn.innerText = "🎤 判定スタート"; 
-                if(recognition) { recognition.abort(); recognition = null; }
+                isRecording = false; 
+                btn.classList.remove('recording'); 
+                btn.innerText = "🎤 判定スタート"; 
+                // 停止ボタンを押した、あるいは自動停止した瞬間に判定
+                if (finalTranscript) {
+                    judge(currentTarget, finalTranscript, currentId);
+                }
+                recognition = null;
             };
+            
+            recognition.onerror = () => { isRecording = false; btn.classList.remove('recording'); btn.innerText = "🎤 判定スタート"; };
             recognition.start();
         }
 
@@ -204,26 +223,24 @@
             });
 
             const score = Math.round((matchCount / tWords.length) * 100);
-            const scoreColor = score >= 90 ? '#00C853' : (score >= 50 ? '#FF9800' : '#ff4757');
-            document.getElementById(`sc-${id}`).innerHTML = `<span class="score-val" style="color:${scoreColor}">${score}点</span>`;
+            const scEl = document.getElementById(`sc-${id}`);
+            scEl.innerHTML = `<span class="score-val" style="color:${score >= 90 ? '#00C853' : (score >= 50 ? '#FF9800' : '#ff4757')}">${score}点</span>`;
             
             const ad = document.getElementById(`ad-${id}`);
             if (score >= 90) {
                 ad.innerHTML = "✨ Perfect!";
                 ad.style.display = "block";
+                if (!stats.data.passedIds.includes(id)) {
+                    stats.data.pass++; stats.data.passedIds.push(id);
+                    document.getElementById(`card-${id}`).classList.add('cleared');
+                    confetti({ particleCount: 80, spread: 60, origin: { y: 0.7 } });
+                }
             } else if (foundTips.length > 0) {
-                // 重複削除して、上から2つだけ抽出
                 const uniqueTips = [...new Set(foundTips)].slice(0, 2);
                 ad.innerHTML = uniqueTips.map(t => `・${t}`).join('<br>');
                 ad.style.display = "block";
             } else {
                 ad.style.display = "none";
-            }
-
-            if (score >= 90 && !stats.data.passedIds.includes(id)) {
-                stats.data.pass++; stats.data.passedIds.push(id);
-                document.getElementById(`card-${id}`).classList.add('cleared');
-                confetti({ particleCount: 80, spread: 60, origin: { y: 0.7 } });
             }
             stats.data.total++; stats.save();
         }
