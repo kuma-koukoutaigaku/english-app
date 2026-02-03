@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>高校退学教師のK高等学校 - 完全版</title>
+    <title>K高等学校 - スパルタ発音矯正</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@700&display=swap');
@@ -69,7 +69,7 @@
             'n': "語尾の『N』は舌を上顎にべったりつけて音を止めて。", 'm': "語尾の『M』は唇をしっかり閉じて鼻から音を抜こう。"
         };
 
-        const scoreMsgs = ["不合格！やり直し","声が小さい？","もっと練習！","基礎を固めよう","カタカナっぽい","半分正解！","いい感じ！","合格まであと少し","ほぼ完璧！","合格！すごい！","伝説級！神！"];
+        const scoreMsgs = ["不合格！やり直し","判定不能...","もっと声を張れ！","発音が甘すぎる","カタカナ卒業せよ","基礎から練習だ","あと一歩！","合格！合格！","完璧だぜ！","神レベル！","伝説確定！"];
 
         async function loadData() {
             try {
@@ -107,39 +107,67 @@
             });
         }
 
-        function speak(t) { const u = new SpeechSynthesisUtterance(t); u.lang = 'en-US'; u.rate = 0.85; window.speechSynthesis.speak(u); }
+        function speak(t) { const u = new SpeechSynthesisUtterance(t); u.lang = 'en-US'; u.rate = 0.8; window.speechSynthesis.speak(u); }
 
         function check(target, id) {
             const btn = document.getElementById(`btn-${id}`); const fb = document.getElementById(`fb-${id}`);
             const area = document.getElementById(`area-${id}`); const scArea = document.getElementById(`sc-${id}`); const ad = document.getElementById(`ad-${id}`);
-            btn.classList.add('recording'); btn.innerText = "聞いています...どうぞ！";
-            const rec = new (window.SpeechRecognition || window.webkitSpeechRecognition)(); rec.lang = 'en-US';
+            btn.classList.add('recording'); btn.innerText = "聴取中...（ネイティブになりきれ！）";
+            const rec = new (window.SpeechRecognition || window.webkitSpeechRecognition)(); 
+            rec.lang = 'en-US'; rec.maxAlternatives = 1;
+
             rec.onresult = (e) => {
                 btn.classList.remove('recording'); btn.innerText = "🎤 判定スタート";
-                const result = e.results[0][0]; const speech = result.transcript; fb.innerText = speech;
+                const res = e.results[0][0]; 
+                const speech = res.transcript; 
+                const confidence = res.confidence; // 自信度（0〜1）
+                fb.innerText = speech;
+
                 const sWords = speech.toLowerCase().replace(/[.!?,]/g, "").split(/\s+/);
-                const tWords = target.split(/\s+/); let correctCount = 0; let html = ""; let missedChars = "";
+                const tWords = target.split(/\s+/);
+                let correctCount = 0; let html = ""; let missedChars = ""; let hasMiss = false;
+
                 tWords.forEach(w => {
                     const cleanW = w.toLowerCase().replace(/[.!?,]/g, "");
-                    if(sWords.includes(cleanW)) { html += `<span class="word-chip perfect" onclick="speak('${w}')">${w}</span> `; correctCount++; }
-                    else { html += `<span class="word-chip miss" onclick="speak('${w}')">${w}</span> `; missedChars += cleanW; }
+                    // 【スパルタ判定】単語が含まれていても、自信度が0.85未満ならミス扱いにする（カタカナ対策）
+                    const isPerfect = sWords.includes(cleanW) && (confidence > 0.85 || cleanW.length > 5);
+                    if(isPerfect) {
+                        html += `<span class="word-chip perfect" onclick="speak('${w}')">${w}</span> `;
+                        correctCount++;
+                    } else {
+                        html += `<span class="word-chip miss" onclick="speak('${w}')">${w}</span> `;
+                        missedChars += cleanW;
+                        hasMiss = true;
+                    }
                 });
                 area.innerHTML = html;
+
                 const extra = Math.max(0, sWords.length - tWords.length);
-                let score = Math.round((correctCount / tWords.length) * 100) - (extra * 10);
+                let score = Math.round((correctCount / tWords.length) * 100) - (extra * 15);
                 if (score < 0) score = 0;
-                sessionStats.total++; if(score >= 95) sessionStats.pass++;
-                document.getElementById('totalCount').innerText = sessionStats.total; document.getElementById('passCount').innerText = sessionStats.pass;
-                const color = score >= 95 ? "#00C853" : "#FF5252";
+
+                const isPass = score >= 70; // 70点以上で合格
+                sessionStats.total++; if(isPass) sessionStats.pass++;
+                document.getElementById('totalCount').innerText = sessionStats.total;
+                document.getElementById('passCount').innerText = sessionStats.pass;
+
+                const color = isPass ? "#00C853" : "#FF5252";
                 scArea.innerHTML = `<span class="score-val" style="color:${color}">${score}点</span><span class="score-status" style="color:${color}">${scoreMsgs[Math.floor(score/10)] || scoreMsgs[0]}</span>`;
-                if(score >= 95) { confetti(); ad.style.display="none"; }
-                else {
-                    let tip = `<b>${extra > 0 ? '余計な単語を拾ったぜ！<br>' : ''}赤色の単語をタップ</b>してお手本を聴こう。`;
+                
+                if(isPass && !hasMiss && extra === 0) { 
+                    confetti(); ad.style.display="none"; 
+                } else {
+                    let tip = "";
+                    if(extra > 0) tip += `<b>余計な単語（${extra}個）を拾ったぜ！</b><br>もっと短く、正確に発音してみよう。<br>`;
+                    if(hasMiss) tip += `<b>赤色の単語をタップ</b>してお手本を聴こう。<br>`;
+                    if(confidence < 0.85 && !hasMiss) tip += `<b>惜しい！</b>聞き取れたけど発音がモゴモゴしてるぜ。<br>`;
+                    
                     for(let k in tips) { if(missedChars.includes(k)) { tip += `<br>💡コツ：${tips[k]}`; break; } }
-                    ad.innerHTML = tip; ad.style.display="block";
+                    ad.innerHTML = tip || "もう少しハッキリ喋ってみようぜ！";
+                    ad.style.display="block";
                 }
             };
-            rec.onerror = () => { btn.classList.remove('recording'); btn.innerText = "失敗（もう一度）"; };
+            rec.onerror = () => { btn.classList.remove('recording'); btn.innerText = "エラー（もう一度）"; };
             rec.start();
         }
         loadData();
