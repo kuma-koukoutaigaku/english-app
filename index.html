@@ -13,8 +13,12 @@
         body { font-family: sans-serif; background: var(--bg); margin: 0; padding: 15px; padding-bottom: 50px; }
         .header-area { text-align: center; margin-bottom: 10px; }
         .main-title { font-family: 'Noto Serif JP', serif; font-size: 1.4rem; color: var(--secondary); border-bottom: 3px solid var(--primary); display: inline-block; }
-        .stats-bar { background: #fff; border-radius: 12px; padding: 10px; margin: 15px 0; display: flex; justify-content: space-around; align-items: center; font-weight: bold; box-shadow: 0 2px 8px rgba(0,0,0,0.05); font-size: 0.85rem; }
-        .reset-btn { background: #eee; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; color: #666; font-size: 0.7rem; }
+        
+        /* ヘッダー統計エリアの調整 */
+        .stats-bar { background: #fff; border-radius: 12px; padding: 12px 15px; margin: 15px 0; display: flex; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .stats-main { flex-grow: 1; display: flex; gap: 20px; font-weight: bold; font-size: 0.9rem; }
+        .stats-item span { color: var(--secondary); font-size: 1.1rem; margin-left: 4px; }
+        .reset-btn { background: #f0f0f0; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; color: #999; font-size: 0.65rem; white-space: nowrap; margin-left: 10px; }
         
         .menu-container { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 10px; scrollbar-width: none; }
         .date-tab { background: #fff; border: 1px solid #ddd; padding: 8px 15px; border-radius: 20px; cursor: pointer; white-space: nowrap; }
@@ -42,16 +46,20 @@
 
         .speak-btn { width: 100%; background: var(--primary); color: white; border: none; padding: 16px; border-radius: 30px; cursor: pointer; font-weight: bold; font-size: 1.1rem; margin-top: 15px; box-shadow: 0 4px 0 #E68A00; }
         .speak-btn.recording { background: #d63031 !important; box-shadow: 0 4px 0 #9b2222 !important; }
-        .advice-box { margin-top: 12px; background: #fff9db; padding: 12px; border-radius: 10px; font-size: 0.85rem; border-left: 5px solid #fcc419; display: none; line-height: 1.6; }
+        .advice-box { margin-top: 12px; background: #fff9db; padding: 12px; border-radius: 10px; font-size: 0.85rem; border-left: 5px solid #fcc419; display: none; line-height: 1.6; color: #333; }
     </style>
 </head>
 <body>
     <div class="header-area"><h1 class="main-title">K高等学校-英語チェック</h1></div>
+    
     <div class="stats-bar">
-        <div>🔥 挑戦: <span id="totalCount">0</span>回</div>
-        <div>🏆 累計合格数: <span id="passCount">0</span>個</div>
-        <button class="reset-btn" onclick="resetStats()">データリセット</button>
+        <div class="stats-main">
+            <div class="stats-item">🔥 挑戦: <span id="totalCount">0</span>回</div>
+            <div class="stats-item">🏆 合格数: <span id="passCount">0</span>個</div>
+        </div>
+        <button class="reset-btn" onclick="resetStats()">リセット</button>
     </div>
+
     <div id="dateMenu" class="menu-container"></div>
     <div id="videoHeader"></div>
     <div id="content"></div>
@@ -72,15 +80,16 @@
         };
 
         const stats = {
-            data: JSON.parse(localStorage.getItem('kHighStats_v6')) || { total: 0, pass: 0, passedIds: [], lastDate: "" },
+            // v7にアップデートして累計挑戦回数を保持するように
+            data: JSON.parse(localStorage.getItem('kHighStats_v7')) || { total: 0, pass: 0, passedIds: [] },
             save() {
-                localStorage.setItem('kHighStats_v6', JSON.stringify(this.data));
+                localStorage.setItem('kHighStats_v7', JSON.stringify(this.data));
                 document.getElementById('totalCount').innerText = this.data.total;
                 document.getElementById('passCount').innerText = this.data.pass;
             }
         };
 
-        function resetStats() { if(confirm("今までの記録を消去するぜ？")) { localStorage.removeItem('kHighStats_v6'); location.reload(); } }
+        function resetStats() { if(confirm("今までの全記録をリセットするぜ？")) { localStorage.removeItem('kHighStats_v7'); location.reload(); } }
 
         async function init() {
             stats.save();
