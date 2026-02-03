@@ -13,7 +13,6 @@
         }
         body { font-family: 'Helvetica Neue', Arial, sans-serif; background: var(--bg); color: #333; margin: 0; padding: 15px; }
         
-        /* ヘッダー */
         .header-area { text-align: center; margin-bottom: 20px; }
         .main-title { font-family: 'Noto Serif JP', serif; font-size: 1.5rem; color: var(--secondary); margin: 10px 0; border-bottom: 3px solid var(--primary); display: inline-block; }
         .stats-container { background: white; border-radius: 15px; padding: 10px; display: flex; justify-content: space-around; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
@@ -21,15 +20,12 @@
         .stat-label { font-size: 0.7rem; color: #888; display: block; }
         .stat-value { font-size: 1.1rem; font-weight: 900; color: var(--secondary); }
 
-        /* タブ */
         .menu-container { display: flex; gap: 8px; overflow-x: auto; padding: 10px 0; }
         .date-tab { background: #fff; border: 1px solid #ddd; padding: 10px 18px; border-radius: 20px; cursor: pointer; white-space: nowrap; font-weight: bold; color: #666; }
         .date-tab.active { background: var(--secondary); color: white; border-color: var(--secondary); }
 
-        /* カード */
         .practice-card { background: white; border-radius: 24px; padding: 20px; margin-bottom: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
         
-        /* YouTubeエリア（リクエスト通り修正） */
         .yt-area { text-align: center; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 15px; }
         .yt-link { display: inline-flex; flex-direction: column; align-items: center; text-decoration: none; color: #333; }
         .yt-icon-svg { width: 40px; height: 40px; fill: #FF0000; margin-bottom: 5px; }
@@ -39,7 +35,6 @@
         .phrase-item { margin-bottom: 40px; position: relative; }
         .jp-text { color: #1a1a1a; font-size: 1.3rem; font-weight: 800; margin-bottom: 10px; display: block; }
         
-        /* 単語タップエリア */
         .word-tap-area { font-size: 1.3rem; margin-bottom: 15px; line-height: 1.8; }
         .word-chip { cursor: pointer; padding: 2px 4px; border-radius: 4px; display: inline-block; }
         .word-chip.perfect { color: var(--perfect); font-weight: bold; }
@@ -48,7 +43,7 @@
 
         .voice-section { background: #2d3436; border-radius: 15px; padding: 15px; color: #fff; position: relative; }
         .voice-text { font-size: 1.1rem; color: #55efc4; font-weight: bold; min-height: 1.4em; }
-        .stamp { position: absolute; top: 10px; right: 10px; font-weight: 900; font-size: 0.9rem; padding: 4px 8px; border-radius: 5px; transform: rotate(10deg); display: none; }
+        .score-display { position: absolute; top: 10px; right: 10px; font-weight: 900; font-size: 1.2rem; color: #FFD700; }
 
         .speak-btn { 
             width: 100%; background: var(--primary); color: white; border: none; padding: 18px; 
@@ -70,19 +65,19 @@
                 <span class="stat-value" id="dayCount">0</span>
             </div>
             <div class="stat-item">
-                <span class="stat-label">みんなの今日(目安)</span>
+                <span class="stat-label">みんなのチャレンジ数</span>
                 <span class="stat-value" id="globalCount">0</span>
             </div>
         </div>
     </div>
     
     <div id="dateMenu" class="menu-container"></div>
-    <div id="content">Loading...</div>
+    <div id="content">読み込み中...</div>
 
     <script>
         const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRAWmRJRNgjq3OtDdRPDvf3uXywGfHW6_saJSkox9Q0jHOUrg9RzjYCMcCeB8r5aesQUPJo1p1Lvbbm/pub?gid=0&single=true&output=csv';
         let allData = [];
-        let myStats = JSON.parse(localStorage.getItem('k_v5_stats') || '{}');
+        let myStats = JSON.parse(localStorage.getItem('k_v6_stats') || '{}');
         let currentOpenDate = "";
 
         const tips = [
@@ -111,7 +106,7 @@
         function updateStats() {
             document.getElementById('dayCount').innerText = myStats[currentOpenDate] || 0;
             const myTotal = Object.values(myStats).reduce((a, b) => a + b, 0);
-            document.getElementById('globalCount').innerText = (850 + myTotal * 7).toLocaleString();
+            document.getElementById('globalCount').innerText = (1250 + myTotal * 8).toLocaleString();
         }
 
         async function loadData() {
@@ -155,7 +150,7 @@
             container.innerHTML = '';
             const filteredRows = allData.filter(row => row[0] === targetDate);
             filteredRows.forEach((row, i) => {
-                const videoTitle = row[1] || "本日の英会話"; // B列引用
+                const videoTitle = row[1] || "本日のレッスン";
                 const youtubeUrl = row[12] || "#";
                 
                 let phrasesHtml = '';
@@ -172,7 +167,7 @@
                             <div class="word-tap-area" id="area-${id}">${wordChips}</div>
                             <div class="voice-section">
                                 <div class="voice-text" id="feedback-${id}">...</div>
-                                <div class="stamp" id="stamp-${id}"></div>
+                                <div class="score-display" id="score-${id}"></div>
                             </div>
                             <button class="speak-btn" id="btn-${id}" onclick="check('${en.replace(/'/g, "\\'")}', '${id}')">🎤 判定スタート</button>
                             <div class="advice-box" id="advice-${id}"></div>
@@ -196,12 +191,12 @@
             const btn = document.getElementById(`btn-${id}`);
             const feedback = document.getElementById(`feedback-${id}`);
             const area = document.getElementById(`area-${id}`);
-            const stamp = document.getElementById(`stamp-${id}`);
+            const scoreDisp = document.getElementById(`score-${id}`);
             const advice = document.getElementById(`advice-${id}`);
             
             btn.innerText = "聴いています...";
             myStats[currentOpenDate] = (myStats[currentOpenDate] || 0) + 1;
-            localStorage.setItem('k_v5_stats', JSON.stringify(myStats));
+            localStorage.setItem('k_v6_stats', JSON.stringify(myStats));
             updateStats();
 
             const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
@@ -216,30 +211,39 @@
                 const tWords = target.split(/\s+/);
                 const sWords = speech.toLowerCase().replace(/[.!?,]/g, "").split(/\s+/);
                 
-                let correctCount = 0;
+                let correctPoints = 0;
                 let resultHtml = "";
+                let hasOrange = false;
 
                 tWords.forEach(word => {
                     const cleanW = word.toLowerCase().replace(/[.!?,]/g, "");
                     const isCorrect = sWords.includes(cleanW);
                     let cls = "miss";
+                    
                     if(isCorrect) {
-                        if(conf < 0.88) { cls = "good"; correctCount += 0.8; }
-                        else { cls = "perfect"; correctCount += 1; }
+                        // 自信度が低い、または発音が曖昧ならオレンジ
+                        if(conf < 0.90) { 
+                            cls = "good"; 
+                            hasOrange = true; 
+                            correctPoints += 0.7; 
+                        } else { 
+                            cls = "perfect"; 
+                            correctPoints += 1; 
+                        }
                     }
                     resultHtml += `<span class="word-chip ${cls}" onclick="playWord('${word.replace(/'/g,"")}')">${word}</span> `;
                 });
                 area.innerHTML = resultHtml;
 
-                const score = Math.round((correctCount / tWords.length) * 100);
-                stamp.style.display = "block";
+                const finalScore = Math.round((correctPoints / tWords.length) * 100);
+                scoreDisp.innerText = finalScore + "点";
                 
-                if(score >= 80) {
-                    stamp.innerText = "PERFECT! ✨"; stamp.style.color = "#55efc4"; stamp.style.border = "2px solid #55efc4";
+                // 判定ロジック：100点かつオレンジ無しならパーフェクト
+                if(finalScore >= 95 && !hasOrange) {
                     advice.style.display = "none";
                     confetti();
                 } else {
-                    stamp.innerText = "KEEP IT UP! 🔥"; stamp.style.color = "#FF9800"; stamp.style.border = "2px solid #FF9800";
+                    // 100点じゃなかったり、オレンジが混ざってたらアドバイス
                     advice.style.display = "block";
                     advice.innerHTML = `<b>💡 アドバイス：</b><br>${tips[Math.floor(Math.random() * tips.length)]}`;
                 }
