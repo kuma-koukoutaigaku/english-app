@@ -9,7 +9,7 @@
         @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@700&display=swap');
         :root {
             --primary: #FF9800; --secondary: #1a237e; --bg: #F0F4F8;
-            --perfect: #00C853; --good: #FF9800; --miss: #FF5252;
+            --perfect: #00C853; --miss: #FF5252;
         }
         body { font-family: 'Helvetica Neue', Arial, sans-serif; background: var(--bg); color: #333; margin: 0; padding: 15px; }
         
@@ -20,8 +20,7 @@
         .stat-label { font-size: 0.7rem; color: #888; display: block; }
         .stat-value { font-size: 1.1rem; font-weight: 900; color: var(--secondary); }
 
-        /* 日付メニュー：最新が左 */
-        .menu-container { display: flex; gap: 8px; overflow-x: auto; padding: 10px 0; flex-direction: row; }
+        .menu-container { display: flex; gap: 8px; overflow-x: auto; padding: 10px 0; }
         .date-tab { background: #fff; border: 1px solid #ddd; padding: 10px 18px; border-radius: 20px; cursor: pointer; white-space: nowrap; font-weight: bold; color: #666; }
         .date-tab.active { background: var(--secondary); color: white; border-color: var(--secondary); }
 
@@ -39,14 +38,17 @@
         .word-tap-area { font-size: 1.4rem; margin-bottom: 15px; line-height: 1.8; }
         .word-chip { cursor: pointer; padding: 2px 4px; border-radius: 4px; display: inline-block; transition: 0.2s; }
         .word-chip.perfect { color: var(--perfect); font-weight: bold; }
-        .word-chip.good { color: var(--good); text-decoration: underline; font-weight: bold; }
-        .word-chip.miss { color: var(--miss); background: rgba(255, 82, 82, 0.1); border-radius: 4px; }
+        .word-chip.miss { color: var(--miss); background: rgba(255, 82, 82, 0.1); }
 
-        /* 点数を大きく左側に配置 */
-        .voice-section { background: #2d3436; border-radius: 15px; padding: 15px 15px 15px 80px; color: #fff; position: relative; min-height: 60px; }
-        .score-display { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 2.2rem; font-weight: 900; color: #FFD700; text-shadow: 0 2px 4px rgba(0,0,0,0.3); line-height: 1; }
-        .score-unit { font-size: 0.8rem; margin-left: 2px; }
-        .voice-text { font-size: 1.1rem; color: #55efc4; font-weight: bold; display: block; }
+        /* フィードバックエリア */
+        .voice-section { background: #2d3436; border-radius: 15px; padding: 15px; color: #fff; position: relative; min-height: 50px; }
+        .voice-label { font-size: 0.75rem; color: #aaa; display: block; margin-bottom: 5px; }
+        .voice-text { font-size: 1.1rem; color: #55efc4; font-weight: bold; }
+        
+        /* 点数は右側に配置 */
+        .score-display { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); text-align: right; }
+        .score-val { font-size: 1.5rem; font-weight: 900; display: block; line-height: 1; }
+        .score-status { font-size: 0.7rem; font-weight: bold; }
 
         .speak-btn { 
             width: 100%; background: var(--primary); color: white; border: none; padding: 18px; 
@@ -80,10 +82,9 @@
     <script>
         const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRAWmRJRNgjq3OtDdRPDvf3uXywGfHW6_saJSkox9Q0jHOUrg9RzjYCMcCeB8r5aesQUPJo1p1Lvbbm/pub?gid=0&single=true&output=csv';
         let allData = [];
-        let myStats = JSON.parse(localStorage.getItem('k_v7_stats') || '{}');
+        let myStats = JSON.parse(localStorage.getItem('k_v8_stats') || '{}');
         let currentOpenDate = "";
 
-        // 特徴的な音ごとのアドバイスマップ
         const phonicsTips = {
             'l': "『L』の発音！舌の先を上の前歯の付け根に押し当ててみて。",
             'r': "『R』が惜しい。舌をどこにも付けずに、喉の奥に引くイメージ！",
@@ -100,7 +101,7 @@
         function updateStats() {
             document.getElementById('dayCount').innerText = myStats[currentOpenDate] || 0;
             const myTotal = Object.values(myStats).reduce((a, b) => a + b, 0);
-            document.getElementById('globalCount').innerText = (1500 + myTotal * 10).toLocaleString();
+            document.getElementById('globalCount').innerText = (1800 + myTotal * 12).toLocaleString();
         }
 
         async function loadData() {
@@ -115,15 +116,10 @@
         function createMenu() {
             const menu = document.getElementById('dateMenu');
             const today = new Date();
-            const todayStr = today.getFullYear() + "/" + 
-                            String(today.getMonth() + 1).padStart(2, '0') + "/" + 
-                            String(today.getDate()).padStart(2, '0');
-
-            // 今日以前の日付だけを抽出し、最新順にソート
+            const todayStr = today.getFullYear() + "/" + String(today.getMonth() + 1).padStart(2, '0') + "/" + String(today.getDate()).padStart(2, '0');
             const dates = [...new Set(allData.slice(1).map(r => r[0]))]
                 .filter(d => d && d.trim() !== "" && d <= todayStr)
                 .sort((a, b) => b.localeCompare(a)); 
-
             menu.innerHTML = '';
             dates.forEach(date => {
                 const btn = document.createElement('button');
@@ -168,8 +164,9 @@
                             <span class="jp-text">${jp}</span>
                             <div class="word-tap-area" id="area-${id}">${wordChips}</div>
                             <div class="voice-section">
-                                <div class="score-display" id="score-${id}"></div>
+                                <span class="voice-label">キミの英語</span>
                                 <div class="voice-text" id="feedback-${id}">...</div>
+                                <div class="score-display" id="score-${id}"></div>
                             </div>
                             <button class="speak-btn" id="btn-${id}" onclick="check('${en.replace(/'/g, "\\'")}', '${id}')">🎤 判定スタート</button>
                             <div class="advice-box" id="advice-${id}"></div>
@@ -195,7 +192,7 @@
             
             btn.innerText = "聴いています...";
             myStats[currentOpenDate] = (myStats[currentOpenDate] || 0) + 1;
-            localStorage.setItem('k_v7_stats', JSON.stringify(myStats));
+            localStorage.setItem('k_v8_stats', JSON.stringify(myStats));
             updateStats();
 
             const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
@@ -204,7 +201,6 @@
             recognition.onresult = (event) => {
                 btn.innerText = "🎤 判定スタート";
                 const speech = event.results[0][0].transcript;
-                const conf = event.results[0][0].confidence;
                 feedback.innerText = speech;
 
                 const tWords = target.split(/\s+/);
@@ -217,28 +213,31 @@
                 tWords.forEach(word => {
                     const cleanW = word.toLowerCase().replace(/[.!?,]/g, "");
                     const isCorrect = sWords.includes(cleanW);
-                    let cls = "miss";
                     
                     if(isCorrect) {
-                        if(conf > 0.92) { cls = "perfect"; correctCount += 1; }
-                        else { cls = "good"; correctCount += 0.8; }
+                        resultHtml += `<span class="word-chip perfect" onclick="playWord('${word.replace(/'/g,"")}')">${word}</span> `;
+                        correctCount++;
                     } else {
-                        missedChars += cleanW; // 言えなかった単語の文字を蓄積
+                        resultHtml += `<span class="word-chip miss" onclick="playWord('${word.replace(/'/g,"")}')">${word}</span> `;
+                        missedChars += cleanW;
                     }
-                    resultHtml += `<span class="word-chip ${cls}" onclick="playWord('${word.replace(/'/g,"")}')">${word}</span> `;
                 });
                 area.innerHTML = resultHtml;
 
                 const finalScore = Math.round((correctCount / tWords.length) * 100);
-                scoreDisp.innerHTML = finalScore + '<span class="score-unit">点</span>';
-                scoreDisp.style.color = finalScore >= 90 ? "#00C853" : (finalScore >= 60 ? "#FF9800" : "#FF5252");
+                let statusText = "";
+                let scoreColor = "#FF5252";
 
-                if(finalScore >= 95) {
-                    advice.style.display = "none";
+                if(finalScore >= 90) {
+                    statusText = "合格！";
+                    scoreColor = "#00C853";
                     confetti();
+                    advice.style.display = "none";
                 } else {
-                    // 失敗した単語に含まれる文字からアドバイスを選定
-                    let selectedTip = "お手本の単語をタップして、音の違いを確認してみて！";
+                    statusText = "もっといける！";
+                    scoreColor = "#FF9800";
+                    
+                    let selectedTip = "お手本をタップして音を確認してみよう！";
                     for (let key in phonicsTips) {
                         if (missedChars.includes(key)) {
                             selectedTip = phonicsTips[key];
@@ -248,6 +247,11 @@
                     advice.style.display = "block";
                     advice.innerHTML = `<b>💡 アドバイス：</b><br>${selectedTip}`;
                 }
+
+                scoreDisp.innerHTML = `
+                    <span class="score-val" style="color:${scoreColor}">${finalScore}点</span>
+                    <span class="score-status" style="color:${scoreColor}">${statusText}</span>
+                `;
             };
             recognition.onerror = () => { btn.innerText = "もう一度！"; };
             recognition.start();
