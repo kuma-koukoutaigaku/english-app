@@ -46,7 +46,8 @@
         .word-tap-area { font-size: 1.4rem; margin-bottom: 15px; line-height: 1.3; font-weight: bold; color: #000; }
         .word-chip { cursor: pointer; padding: 2px 1px; display: inline-block; border-bottom: 2px solid #eee; margin-right: 3px; }
         .word-chip.perfect { color: var(--perfect); border-bottom: none; }
-        .word-chip.miss b { color: var(--miss) !important; text-decoration: underline; font-weight: 900; background: #fff0f0; }
+        .word-chip.miss { color: var(--miss) !important; text-decoration: underline; font-weight: 900; background: #fff0f0; }
+        .word-chip.miss b { color: var(--miss) !important; }
 
         .voice-section { background: #2d3436; border-radius: 12px; padding: 10px; color: #fff; }
         .voice-header { display: flex; justify-content: space-between; align-items: center; }
@@ -80,21 +81,21 @@
         let recognition = null;
         let isRecording = false;
         let currentId = "";
-        let autoStopTimer = null;
-        let currentTargetText = "";
+        let timer = null;
+        let targetSentence = "";
 
         const tips = { 'th':"【th】舌を挟んで",'r':"【r】舌を丸めて",'l':"【l】舌先を前歯裏",'v':"【v】下唇を噛む",'f':"【f】下唇を噛む",'sh':"【sh】強く息を",'ae':"【a】口を横に",'ee':"【ee】伸ばす" };
 
         const stats = {
-            data: JSON.parse(localStorage.getItem('kHighStats_v22')) || { total: 0, pass: 0, passedIds: [] },
+            data: JSON.parse(localStorage.getItem('kHighStats_v23')) || { total: 0, pass: 0, passedIds: [] },
             save() {
-                localStorage.setItem('kHighStats_v22', JSON.stringify(this.data));
+                localStorage.setItem('kHighStats_v23', JSON.stringify(this.data));
                 document.getElementById('totalCount').innerText = this.data.total;
                 document.getElementById('passCount').innerText = this.data.pass;
             }
         };
 
-        function resetStats() { if(confirm("リセットする？")) { localStorage.removeItem('kHighStats_v22'); location.reload(); } }
+        function resetStats() { if(confirm("リセットする？")) { localStorage.removeItem('kHighStats_v23'); location.reload(); } }
 
         async function init() {
             stats.save();
@@ -150,9 +151,8 @@
         function play(t) { const u = new SpeechSynthesisUtterance(t); u.lang = 'en-US'; window.speechSynthesis.speak(u); }
 
         function toggleSpeech(target, id) {
-            if (isRecording) { stopAndJudge(); return; }
-            currentTargetText = target;
-            currentId = id;
+            if (isRecording) { finish(); return; }
+            currentId = id; targetSentence = target;
             startCheck();
         }
 
@@ -165,47 +165,33 @@
             recognition = new SpeechRecognition();
             recognition.lang = 'en-US';
             recognition.interimResults = true;
-            recognition.continuous = false;
 
             recognition.onstart = () => { 
                 isRecording = true; 
                 btn.classList.add('recording'); btn.innerText = "停止";
-                // 4秒後に強制停止
-                autoStopTimer = setTimeout(() => { if(isRecording) stopAndJudge(); }, 4000);
+                // 4秒後に強制終了タイマー
+                timer = setTimeout(() => { if(isRecording) finish(); }, 4000);
             };
             
             recognition.onresult = (e) => { 
                 fb.innerText = Array.from(e.results).map(r => r[0].transcript).join(''); 
             };
             
-            recognition.onend = () => {
-                if (isRecording) { // 自然に止まった場合も判定へ
-                    stopAndJudge();
-                }
-            };
-
-            recognition.onerror = () => resetUI();
+            recognition.onend = () => { if(isRecording) finish(); };
+            recognition.onerror = () => { isRecording = false; resetUI(); };
             recognition.start();
         }
 
-        function stopAndJudge() {
-            clearTimeout(autoStopTimer);
-            const fb = document.getElementById(`fb-${currentId}`);
-            const finalResult = fb ? fb.innerText : "";
-
-            if (recognition) {
-                recognition.onend = null; // ループ防止
-                recognition.abort();
-            }
-
-            if (isRecording && finalResult !== "...") {
-                judge(currentTargetText, finalResult, currentId);
-            }
+        function finish() {
+            clearTimeout(timer);
+            isRecording = false;
+            const resText = document.getElementById(`fb-${currentId}`).innerText;
+            if (recognition) recognition.stop();
+            if (resText !== "...") judge(targetSentence, resText, currentId);
             resetUI();
         }
 
         function resetUI() {
-            isRecording = false;
             const btn = document.getElementById(`btn-${currentId}`);
             if (btn) { btn.classList.remove('recording'); btn.innerText = "🎤 判定スタート"; }
         }
@@ -221,7 +207,9 @@
             tWords.forEach((origW, i) => {
                 const cleanT = clean(origW);
                 if (rWords.includes(cleanT)) {
-                    chips[i].className = 'word-chip perfect'; matchCount++;
+                    chips[i].className = 'word-chip perfect';
+                    chips[i].innerHTML = origW; // 元に戻す
+                    matchCount++;
                 } else {
                     chips[i].className = 'word-chip miss';
                     let disp = origW;
@@ -246,11 +234,14 @@
                     document.getElementById(`card-${id}`).classList.add('cleared');
                     confetti({ particleCount: 40, spread: 50, origin: { y: 0.8 } });
                 }
-            } else if (foundTips.length > 0) {
-                ad.innerHTML = [...new Set(foundTips)].slice(0, 2).map(t => `・${t}`).join('<br>');
-                ad.style.display = "block";
             } else {
-                ad.style.display = "none";
+                if (foundTips.length > 0) {
+                    ad.innerHTML = [...new Set(foundTips)].slice(0, 2).map(t => `・${t}`).join('<br>');
+                    ad.style.display = "block";
+                } else {
+                    ad.innerHTML = "・もう一度ゆっくり読んでみて！";
+                    ad.style.display = "block";
+                }
             }
             stats.data.total++; stats.save();
         }
