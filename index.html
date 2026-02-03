@@ -9,7 +9,7 @@
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@700&display=swap');
-        :root { --primary: #FF9800; --secondary: #1a237e; --bg: #F0F4F8; --perfect: #00C853; --miss: #ff4757; --yt-red: #FF0000; --text-main: #333; }
+        :root { --primary: #FF9800; --secondary: #1a237e; --bg: #F0F4F8; --perfect: #00C853; --miss: #ff4757; --yt-red: #FF0000; }
         body { font-family: sans-serif; background: var(--bg); margin: 0; padding: 10px; padding-bottom: 50px; -webkit-tap-highlight-color: transparent; }
         
         .header-area { text-align: center; margin-bottom: 5px; }
@@ -36,10 +36,9 @@
         .jp-text { font-size: 0.85rem; font-weight: 800; margin-bottom: 6px; display: block; color: #666; }
         .word-tap-area { font-size: 1.4rem; margin-bottom: 15px; line-height: 1.3; font-weight: bold; color: #000; }
         
-        /* 単語ごとのスタイル */
-        .word-chip { cursor: pointer; padding: 2px 1px; display: inline-block; margin-right: 3px; color: #000; transition: 0.3s; }
+        .word-chip { cursor: pointer; padding: 2px 1px; display: inline-block; margin-right: 3px; color: #000; transition: color 0.1s ease; }
         .word-chip.perfect { color: var(--perfect) !important; }
-        .word-chip.miss { color: #ccc; } /* ミス時は全体をグレーに */
+        .word-chip.miss { color: #ccc !important; }
         .word-chip.miss b { color: var(--miss) !important; text-decoration: underline; font-weight: 900; }
 
         .voice-section { background: #2d3436; border-radius: 12px; padding: 10px; color: #fff; }
@@ -80,15 +79,15 @@
         const tips = { 'th':"【th】舌を挟んで",'r':"【r】舌を丸めて",'l':"【l】舌先を前歯裏",'v':"【v】下唇を噛む",'f':"【f】下唇を噛む",'sh':"【sh】強く息を",'ae':"【a】口を横に",'ee':"【ee】伸ばす" };
 
         const stats = {
-            data: JSON.parse(localStorage.getItem('kHighStats_v25')) || { total: 0, pass: 0, passedIds: [] },
+            data: JSON.parse(localStorage.getItem('kHighStats_v26')) || { total: 0, pass: 0, passedIds: [] },
             save() {
-                localStorage.setItem('kHighStats_v25', JSON.stringify(this.data));
+                localStorage.setItem('kHighStats_v26', JSON.stringify(this.data));
                 document.getElementById('totalCount').innerText = this.data.total;
                 document.getElementById('passCount').innerText = this.data.pass;
             }
         };
 
-        function resetStats() { if(confirm("リセットする？")) { localStorage.removeItem('kHighStats_v25'); location.reload(); } }
+        function resetStats() { if(confirm("リセットする？")) { localStorage.removeItem('kHighStats_v26'); location.reload(); } }
 
         async function init() {
             stats.save();
@@ -130,7 +129,7 @@
                     container.innerHTML += `
                     <div class="practice-card ${isPassed?'cleared':''}" id="card-${id}">
                         <span class="jp-text">${jp}</span>
-                        <div class="word-tap-area" id="area-${id}">${en.split(' ').map(w => `<span class="word-chip ${isPassed?'perfect':''}" onclick="play('${w.replace(/[-?!.,]/g,"")}')">${w}</span>`).join('')}</div>
+                        <div class="word-tap-area" id="area-${id}">${en.split(' ').map(w => `<span class="word-chip ${isPassed?'perfect':''}" onclick="play('${w.replace(/[-?!.,]/g,"")}')">${w}</span>`).join(' ')}</div>
                         <div class="voice-section">
                             <div class="voice-header"><span style="font-size:0.6rem;color:#aaa">キミの英語</span><div id="sc-${id}"></div></div>
                             <div class="voice-text" id="fb-${id}"></div>
@@ -188,18 +187,20 @@
             const clean = (s) => s.toLowerCase().replace(/[-.,!?]/g, "").trim();
             const rWords = clean(result).split(/\s+/);
             const tWords = target.split(/\s+/);
-            const chips = document.getElementById(`area-${id}`).querySelectorAll('.word-chip');
+            const area = document.getElementById(`area-${id}`);
+            
             let matchCount = 0;
             let foundTips = [];
+            let newHtml = "";
 
-            tWords.forEach((origW, i) => {
+            tWords.forEach((origW) => {
                 const cleanT = clean(origW);
-                if (rWords.includes(cleanT)) {
-                    chips[i].className = 'word-chip perfect';
-                    chips[i].innerHTML = origW;
+                const isCorrect = rWords.includes(cleanT);
+                
+                if (isCorrect) {
+                    newHtml += `<span class="word-chip perfect" onclick="play('${origW.replace(/[-?!.,]/g,"")}')">${origW}</span> `;
                     matchCount++;
                 } else {
-                    chips[i].className = 'word-chip miss';
                     let disp = origW;
                     for (let key in tips) {
                         if (cleanT.includes(key)) {
@@ -207,9 +208,12 @@
                             foundTips.push(tips[key]);
                         }
                     }
-                    chips[i].innerHTML = disp;
+                    newHtml += `<span class="word-chip miss" onclick="play('${origW.replace(/[-?!.,]/g,"")}')">${disp}</span> `;
                 }
             });
+
+            // 一気に反映
+            area.innerHTML = newHtml;
 
             const score = Math.round((matchCount / tWords.length) * 100);
             document.getElementById(`sc-${id}`).innerHTML = `<span class="score-val" style="color:${score >= 90 ? '#00C853' : '#ff4757'}">${score}点</span>`;
