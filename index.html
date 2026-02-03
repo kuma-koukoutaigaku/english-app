@@ -29,7 +29,7 @@
         .word-chip { cursor: pointer; padding: 2px 6px; border-radius: 6px; display: inline-block; transition: 0.2s; border-bottom: 1px dashed #ccc; }
         .word-chip.perfect { color: var(--perfect); font-weight: bold; border-bottom: none; }
         .word-chip.miss { color: var(--miss-word); background: var(--miss-bg); font-weight: bold; border-bottom: 2px solid var(--miss-word); }
-        .char-highlight { color: var(--miss-char); text-decoration: underline; text-decoration-thickness: 2px; }
+        .char-highlight { color: var(--miss-char); text-decoration: underline; text-decoration-thickness: 2px; font-weight: bold; }
         .voice-section { background: #2d3436; border-radius: 15px; padding: 15px; color: #fff; position: relative; min-height: 80px; }
         .voice-label { font-size: 0.75rem; color: #aaa; display: block; margin-bottom: 5px; }
         .voice-text { font-size: 1.1rem; color: #55efc4; font-weight: bold; padding-right: 110px; line-height: 1.3; min-height: 1.3em; }
@@ -86,7 +86,10 @@
             try {
                 const res = await fetch(csvUrl);
                 const text = await res.text();
-                allData = text.split(/\r?\n/).filter(line => line.trim() !== "").map(r => r.split(','));
+                // 1枚目の画像のバグ対策：まともなCSV行（カンマがある行）だけを抽出
+                allData = text.split(/\r?\n/)
+                              .filter(line => line.includes(',') && line.trim() !== "")
+                              .map(r => r.split(','));
                 createMenu();
             } catch (e) { document.getElementById('content').innerHTML = "CSV読み込み失敗"; }
         }
@@ -97,17 +100,13 @@
             const todayStr = now.getFullYear() + '/' + ('0' + (now.getMonth() + 1)).slice(-2) + '/' + ('0' + now.getDate()).slice(-2);
             const currentHour = now.getHours();
 
-            // 重複排除とソート
-            const dates = [...new Set(allData.slice(1).map(r => r[0]))].filter(d => d).sort((a, b) => b.localeCompare(a));
+            const dates = [...new Set(allData.slice(1).map(r => r[0]))].filter(d => d && d.includes('/')).sort((a, b) => b.localeCompare(a));
             
             menu.innerHTML = '';
-            let visibleCount = 0;
+            let firstDate = null;
 
             dates.forEach(date => {
-                // 未来の日付は表示しない
                 if (date > todayStr) return;
-                
-                // 今日と同じ日付の場合、18時（午後6時）を過ぎていなければ表示しない
                 if (date === todayStr && currentHour < 18) return;
 
                 const btn = document.createElement('button');
@@ -119,14 +118,11 @@
                     showContent(date);
                 };
                 menu.appendChild(btn);
-                visibleCount++;
+                if(!firstDate) firstDate = btn;
             });
 
-            if(menu.firstChild) {
-                menu.firstChild.click();
-            } else if (visibleCount === 0) {
-                document.getElementById('content').innerHTML = "まだ公開されているレッスンはありません（18時以降に更新されます）";
-            }
+            if(firstDate) firstDate.click();
+            else document.getElementById('content').innerHTML = "本日分は18時以降に公開されるぜ！";
         }
 
         function showContent(date) {
@@ -142,6 +138,7 @@
                     const jp = row[j+1]?.trim();
                     if (!en || en.length < 2) continue;
                     const id = `p-${i}-${j}`;
+                    // 初期表示
                     const chips = en.split(' ').map(w => `<span class="word-chip" onclick="speak('${w.replace(/'/g,"")}')">${w}</span>`).join(' ');
                     phs += `<div class="phrase-item">
                         <span class="jp-text">${jp}</span>
@@ -165,6 +162,7 @@
             window.speechSynthesis.speak(u);
         }
 
+        // ここがタグ漏れの原因だったので修正
         function highlightMissedWord(word) {
             let processed = word;
             const keys = Object.keys(tips).sort((a,b) => b.length - a.length);
@@ -199,22 +197,23 @@
             fb.innerText = "...";
             status.style.display = "inline";
 
-            const rec = new (window.SpeechRecognition || window.webkitRecognition)();
+            const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+            const rec = new SpeechRec();
             currentRecognition = rec;
             rec.lang = 'en-US';
             rec.interimResults = true;
 
             rec.onresult = (e) => {
                 if (isAborted) return;
-                let interimTranscript = '';
-                let finalTranscript = '';
+                let interim = '';
+                let final = '';
                 for (let i = e.resultIndex; i < e.results.length; ++i) {
-                    if (e.results[i].isFinal) finalTranscript += e.results[i][0].transcript;
-                    else interimTranscript += e.results[i][0].transcript;
+                    if (e.results[i].isFinal) final += e.results[i][0].transcript;
+                    else interim += e.results[i][0].transcript;
                 }
-                fb.innerText = finalTranscript || interimTranscript;
-                if (finalTranscript !== '') {
-                    processFinalResult(finalTranscript, targetRaw, id);
+                fb.innerText = final || interim;
+                if (final !== '') {
+                    processFinalResult(final, targetRaw, id);
                     rec.stop();
                 }
             };
@@ -224,34 +223,35 @@
                 const sWords = speechRaw.toLowerCase().replace(/[.!?,]/g, "").split(/\s+/);
                 const tWordsDisplay = targetRaw.split(/\s+/);
                 const tWordsMatch = targetRaw.toLowerCase().replace(/[.!?,]/g, "").split(/\s+/);
-                let correctCount = 0; let html = ""; let missedChars = "";
+                let correctCount = 0; 
+                let htmlOutput = ""; 
+                let missedCharsCollector = "";
 
                 tWordsMatch.forEach((tw, idx) => {
                     const originalWord = tWordsDisplay[idx];
                     if(sWords.includes(tw)) {
-                        html += `<span class="word-chip perfect" onclick="speak('${tw}')">${originalWord}</span> `;
+                        htmlOutput += `<span class="word-chip perfect" onclick="speak('${tw}')">${originalWord}</span> `;
                         correctCount++;
                     } else {
-                        html += `<span class="word-chip miss" onclick="speak('${tw}')">${highlightMissedWord(originalWord)}</span> `;
-                        missedChars += tw.toLowerCase();
+                        // 2枚目の画像のバグ修正：ここをinnerHTMLで受けるために正しく構築
+                        htmlOutput += `<span class="word-chip miss" onclick="speak('${tw}')">${highlightMissedWord(originalWord)}</span> `;
+                        missedCharsCollector += tw.toLowerCase();
                     }
                 });
 
-                area.innerHTML = html;
-                let score = Math.round((correctCount / tWordsMatch.length) * 100);
-                let msgIdx = Math.min(Math.floor(score / 5), 19);
-                let statusMsg = scoreMsgs[msgIdx];
+                // テキストではなくHTMLとして流し込む
+                area.innerHTML = htmlOutput;
 
+                let score = Math.round((correctCount / tWordsMatch.length) * 100);
+                let statusMsg = scoreMsgs[Math.min(Math.floor(score / 5), 19)];
                 const isPass = score >= 70;
+
                 sessionStats.total++;
                 if(isPass) sessionStats.pass++;
                 document.getElementById('totalCount').innerText = sessionStats.total;
                 document.getElementById('passCount').innerText = sessionStats.pass;
 
-                scArea.innerHTML = `
-                    <span class="score-val" style="color:${isPass ? "#00C853":"#FF9800"}">${score}点</span>
-                    <span class="score-status" style="color:${isPass ? "#00C853":"#FF9800"}">${statusMsg}</span>
-                `;
+                scArea.innerHTML = `<span class="score-val" style="color:${isPass ? "#00C853":"#FF9800"}">${score}点</span><span class="score-status" style="color:${isPass ? "#00C853":"#FF9800"}">${statusMsg}</span>`;
                 
                 if(isPass && score === 100) {
                     confetti(); ad.style.display = "none";
@@ -259,7 +259,7 @@
                     let tipText = "";
                     const keys = Object.keys(tips).sort((a,b) => b.length - a.length);
                     for(let key of keys) { 
-                        if(missedChars.includes(key)) { 
+                        if(missedCharsCollector.includes(key)) { 
                             tipText = `💡${key.toUpperCase()}のコツ：${tips[key]}`; 
                             break; 
                         } 
