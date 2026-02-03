@@ -15,7 +15,6 @@
         .header-area { text-align: center; margin-bottom: 5px; }
         .main-title { font-family: 'Noto Serif JP', serif; font-size: 1.2rem; color: var(--secondary); border-bottom: 3px solid var(--primary); display: inline-block; margin: 10px 0; }
         
-        /* 統計エリア：1行に収めるための調整 */
         .stats-bar { background: #fff; border-radius: 12px; padding: 8px 10px; margin: 10px 0; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
         .stats-main { flex-grow: 1; display: flex; justify-content: center; gap: 10px; font-weight: bold; font-size: 0.85rem; white-space: nowrap; }
         .stats-item span { color: var(--secondary); font-size: 1rem; margin-left: 2px; }
@@ -25,12 +24,8 @@
         .date-tab { background: #fff; border: 1px solid #ddd; padding: 6px 12px; border-radius: 20px; cursor: pointer; white-space: nowrap; font-size: 0.85rem; }
         .date-tab.active { background: var(--secondary); color: white; border-color: var(--secondary); }
 
-        .video-header-card { background: #fff; border-radius: 15px; padding: 15px; margin-bottom: 15px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
-        .video-display-title { font-size: 1rem; font-weight: 900; color: #333; margin-bottom: 8px; display: block; }
-        .yt-main-link { background: #ff0000; color: white; text-decoration: none; padding: 8px 16px; border-radius: 30px; font-weight: bold; display: inline-flex; align-items: center; gap: 6px; font-size: 0.8rem; }
-
         .practice-card { background: white; border-radius: 20px; padding: 15px; margin-bottom: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); border: 2px solid transparent; }
-        .practice-card.cleared { background: #f0fff4; border-color: var(--perfect); }
+        .practice-card.cleared { border-color: var(--perfect); background: #f0fff4; }
         
         .jp-text { font-size: 0.9rem; font-weight: 800; margin-bottom: 5px; display: block; color: #666; }
         .word-tap-area { font-size: 1.3rem; margin-bottom: 12px; line-height: 1.5; font-weight: bold; }
@@ -39,18 +34,15 @@
         .word-chip.miss { color: #ccc; }
         .word-chip.miss b { color: var(--miss); text-decoration: underline; font-weight: 900; background: #fff0f0; }
 
-        /* スコア重なり防止：flexで分離 */
         .voice-section { background: #2d3436; border-radius: 12px; padding: 12px; color: #fff; display: flex; flex-direction: column; gap: 5px; }
         .voice-header { display: flex; justify-content: space-between; align-items: flex-start; }
         .voice-label { font-size: 0.65rem; color: #aaa; }
         .score-display { text-align: right; min-width: 60px; }
         .score-val { font-size: 1.2rem; font-weight: 900; line-height: 1; }
-        .voice-text { font-size: 1.05rem; color: #55efc4; font-weight: bold; word-break: break-all; }
+        .voice-text { font-size: 1.05rem; color: #55efc4; font-weight: bold; word-break: break-all; min-height: 1.2em; }
 
-        .speak-btn { width: 100%; background: var(--primary); color: white; border: none; padding: 14px; border-radius: 30px; cursor: pointer; font-weight: bold; font-size: 1rem; margin-top: 12px; box-shadow: 0 4px 0 #E68A00; transition: 0.1s; }
-        .speak-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #E68A00; }
-        .speak-btn.recording { background: #d63031 !important; box-shadow: 0 4px 0 #9b2222 !important; animation: pulse 1.5s infinite; }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
+        .speak-btn { width: 100%; background: var(--primary); color: white; border: none; padding: 14px; border-radius: 30px; cursor: pointer; font-weight: bold; font-size: 1rem; margin-top: 12px; box-shadow: 0 4px 0 #E68A00; }
+        .speak-btn.recording { background: #d63031 !important; box-shadow: 0 4px 0 #9b2222 !important; }
         
         .advice-box { margin-top: 10px; background: #fff9db; padding: 10px; border-radius: 8px; font-size: 0.8rem; border-left: 4px solid #fcc419; display: none; color: #444; }
     </style>
@@ -76,49 +68,43 @@
         let recognition = null;
         let isRecording = false;
 
-        const tips = { 'th':"舌を挟んで",'r':"舌を丸めて",'l':"前歯の裏に",'v':"唇を噛んで",'f':"前歯で押さえて",'sh':"シーの口",'ae':"広いア",'ee':"横にイー",'ght':"弱く",'ing':"鼻からン" };
+        const tips = {
+            'th': "【th】舌を挟んで",'r': "【r】舌を丸めて",'l': "【l】前歯の裏に",'v': "【v】下唇を噛んで",'f': "【f】前歯で押さえて",
+            'sh': "【sh】シーの口",'ae': "【a】広いア",'ee': "【ee】横にイー",'ght': "【ght】弱く",'ing': "【ing】鼻からン",
+            's': "【s】息を漏らして",'z': "【z】喉を震わせて",'w': "【w】口を丸めて",'ch': "【ch】鋭くチッ",'dg': "【dg】喉を鳴らして",
+            'ph': "【ph】fと同じ",'ea': "【ea】イーと伸ばす",'ou': "【ou】アウと発音",'ow': "【ow】アウ！",'ar': "【ar】rを意識"
+        };
 
         const stats = {
-            data: JSON.parse(localStorage.getItem('kHighStats_v9')) || { total: 0, pass: 0, passedIds: [] },
+            data: JSON.parse(localStorage.getItem('kHighStats_v10')) || { total: 0, pass: 0, passedIds: [] },
             save() {
-                localStorage.setItem('kHighStats_v9', JSON.stringify(this.data));
+                localStorage.setItem('kHighStats_v10', JSON.stringify(this.data));
                 document.getElementById('totalCount').innerText = this.data.total;
                 document.getElementById('passCount').innerText = this.data.pass;
             }
         };
 
-        function resetStats() { if(confirm("記録をリセットするぜ？")) { localStorage.removeItem('kHighStats_v9'); location.reload(); } }
+        function resetStats() { if(confirm("今までの記録をリセットするぜ？")) { localStorage.removeItem('kHighStats_v10'); location.reload(); } }
 
         async function init() {
             stats.save();
-            try {
-                const res = await fetch(csvUrl);
-                const text = await res.text();
-                const rawRows = text.split(/\r?\n/).filter(line => line.includes(',')).map(r => r.split(','));
-                const dates = [...new Set(rawRows.slice(1).map(r => r[0]))].filter(d => d).sort((a,b) => b.localeCompare(a));
-                
-                const menu = document.getElementById('dateMenu');
-                dates.forEach((d, i) => {
-                    const btn = document.createElement('button');
-                    btn.className = 'date-tab'; btn.innerText = d;
-                    btn.onclick = () => {
-                        document.querySelectorAll('.date-tab').forEach(t => t.classList.remove('active'));
-                        btn.classList.add('active');
-                        render(rawRows.slice(1), d);
-                    };
-                    menu.appendChild(btn);
-                    if(i === 0) btn.click();
-                });
-            } catch(e) { alert("データの読み込みに失敗したぜ。"); }
+            const res = await fetch(csvUrl);
+            const text = await res.text();
+            const rawRows = text.split(/\r?\n/).filter(line => line.includes(',')).map(r => r.split(','));
+            const dates = [...new Set(rawRows.slice(1).map(r => r[0]))].filter(d => d).sort((a,b) => b.localeCompare(a));
+            const menu = document.getElementById('dateMenu');
+            dates.forEach((d, i) => {
+                const btn = document.createElement('button');
+                btn.className = 'date-tab'; btn.innerText = d;
+                btn.onclick = () => { document.querySelectorAll('.date-tab').forEach(t => t.classList.remove('active')); btn.classList.add('active'); render(rawRows.slice(1), d); };
+                menu.appendChild(btn); if(i === 0) btn.click();
+            });
         }
 
         function render(allData, date) {
             const container = document.getElementById('content');
-            const vHeader = document.getElementById('videoHeader');
             container.innerHTML = '';
             const dayRows = allData.filter(r => r[0] === date);
-            if(dayRows.length > 0) vHeader.innerHTML = `<div class="video-header-card"><span class="video-display-title">${dayRows[0][1]}</span><a href="${dayRows[0][12]}" target="_blank" class="yt-main-link">▶ ショート動画で見る</a></div>`;
-            
             dayRows.forEach((row, rowIndex) => {
                 for (let j = 2; j <= 10; j += 2) {
                     const en = row[j]?.trim(); const jp = row[j+1]?.trim();
@@ -129,11 +115,8 @@
                         <span class="jp-text">${jp}</span>
                         <div class="word-tap-area" id="area-${id}">${en.split(' ').map(w => `<span class="word-chip" onclick="play('${w.replace(/[-?!.,]/g,"")}')">${w}</span>`).join('')}</div>
                         <div class="voice-section">
-                            <div class="voice-header">
-                                <span class="voice-label">キミの英語 (ネイティブへの聞こえ方)</span>
-                                <div class="score-display" id="sc-${id}"></div>
-                            </div>
-                            <div class="voice-text" id="fb-${id}">...</div>
+                            <div class="voice-header"><span class="voice-label">キミの英語</span><div class="score-display" id="sc-${id}"></div></div>
+                            <div class="voice-text" id="fb-${id}"></div>
                         </div>
                         <button class="speak-btn" id="btn-${id}" onclick="toggleSpeech('${en.replace(/'/g,"\\'")}', '${id}')">🎤 判定スタート</button>
                         <div class="advice-box" id="ad-${id}"></div>
@@ -142,43 +125,41 @@
             });
         }
 
-        function play(t) { const u = new SpeechSynthesisUtterance(t); u.lang = 'en-US'; u.rate = 0.9; window.speechSynthesis.speak(u); }
+        function play(t) { const u = new SpeechSynthesisUtterance(t); u.lang = 'en-US'; window.speechSynthesis.speak(u); }
 
         function toggleSpeech(target, id) {
-            if (isRecording) {
-                if (recognition) recognition.stop();
-                return;
-            }
+            if (isRecording) { recognition.stop(); return; }
             startCheck(target, id);
         }
 
         function startCheck(target, id) {
             const btn = document.getElementById(`btn-${id}`);
             const fb = document.getElementById(`fb-${id}`);
-            const SpeechAlti = window.SpeechRecognition || window.webkitSpeechRecognition;
-            if (!SpeechAlti) return alert("このブラウザは音声認識に非対応だぜ。");
+            fb.innerText = ""; // 初期化
 
-            recognition = new SpeechAlti();
+            recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
             recognition.lang = 'en-US';
             recognition.interimResults = true;
-            recognition.continuous = false;
 
-            recognition.onstart = () => { isRecording = true; btn.classList.add('recording'); btn.innerText = "停止 (聞き取り中...)"; fb.innerText = "聴いてるぜ..."; };
+            recognition.onstart = () => { isRecording = true; btn.classList.add('recording'); btn.innerText = "停止"; };
             
             recognition.onresult = (e) => {
                 const transcript = Array.from(e.results).map(res => res[0].transcript).join('');
                 fb.innerText = transcript;
-                if (e.results[0].isFinal) judge(target, transcript, id);
+                if (e.results[0].isFinal) {
+                    judge(target, transcript, id);
+                    recognition.stop(); // 判定後に確実に止める
+                }
             };
 
-            recognition.onend = () => { 
-                isRecording = false; 
-                btn.classList.remove('recording'); 
+            recognition.onend = () => {
+                isRecording = false;
+                btn.classList.remove('recording');
                 btn.innerText = "🎤 判定スタート";
-                recognition = null; // iPhone対策：参照を消してリソースを解放
+                // 自動終了時もマイクを解放
+                if(recognition) { recognition.abort(); recognition = null; }
             };
 
-            recognition.onerror = () => { isRecording = false; btn.classList.remove('recording'); btn.innerText = "🎤 判定スタート"; };
             recognition.start();
         }
 
@@ -193,14 +174,20 @@
             tWords.forEach((origW, i) => {
                 const cleanT = clean(origW);
                 const chip = chips[i];
-                // 厳格判定：認識結果の中にターゲット単語が含まれているか
-                if (rWords.some(rw => rw === cleanT)) {
+                if (rWords.includes(cleanT)) {
                     chip.className = 'word-chip perfect'; chip.innerHTML = origW;
                     matchCount++;
                 } else {
                     chip.className = 'word-chip miss';
                     let disp = origW;
-                    for (let k in tips) { if(cleanT.includes(k)) { disp = disp.replace(new RegExp(k, 'gi'), `<b>$&</b>`); missedTips.add(tips[k]); } }
+                    // 発音フィードバック20種適用
+                    for (let k in tips) {
+                        if (cleanT.toLowerCase().includes(k)) {
+                            const regex = new RegExp(k, 'gi');
+                            disp = disp.replace(regex, `<b>$&</b>`);
+                            missedTips.add(tips[k]);
+                        }
+                    }
                     chip.innerHTML = disp;
                 }
             });
@@ -210,13 +197,13 @@
             document.getElementById(`sc-${id}`).innerHTML = `<span class="score-val" style="color:${scoreColor}">${score}点</span>`;
             
             const ad = document.getElementById(`ad-${id}`);
-            ad.innerHTML = score >= 90 ? "✨ <strong>Perfect!</strong> ネイティブ級だぜ！" : `💡 <strong>コツ:</strong> ${Array.from(missedTips).join(' / ') || "一気に言ってみよう！"}`;
+            ad.innerHTML = score >= 90 ? "✨ <strong>Perfect!</strong>" : `💡 ${Array.from(missedTips).join(' / ') || "もう一度！"}`;
             ad.style.display = "block";
 
             if (score >= 90 && !stats.data.passedIds.includes(id)) {
                 stats.data.pass++; stats.data.passedIds.push(id);
                 document.getElementById(`card-${id}`).classList.add('cleared');
-                confetti({ particleCount: 100, spread: 70, origin: { y: 0.7 } });
+                confetti({ particleCount: 80, spread: 60, origin: { y: 0.7 } });
             }
             stats.data.total++; stats.save();
         }
