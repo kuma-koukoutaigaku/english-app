@@ -3,15 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>English Master 🔥</title>
+    <title>高校退学教師のK高等学校 🎓</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         :root {
-            --primary: #FF9800; --secondary: #673AB7; --bg: #F0F4F8;
-            --score-100: #00C853; --score-70: #2196F3; --score-40: #FFD600; --score-0: #FF5252;
+            --primary: #FF9800; --secondary: #1a237e; --bg: #F0F4F8;
+            --score-100: #00C853; --score-70: #2196F3; --score-40: #FF9800; --score-0: #FF5252;
             --yt-red: #FF0000;
         }
         body { font-family: 'Helvetica Neue', Arial, sans-serif; background: var(--bg); color: #333; margin: 0; padding: 15px; }
+        
+        /* ヘッダーとカウンター */
+        .header-area { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .view-count { font-size: 0.75rem; color: #777; background: #fff; padding: 4px 10px; border-radius: 10px; border: 1px solid #ddd; }
+
         .menu-container { display: flex; gap: 10px; overflow-x: auto; padding: 10px 0; }
         .date-tab { background: #fff; border: 1px solid #ddd; padding: 8px 18px; border-radius: 20px; cursor: pointer; white-space: nowrap; font-weight: bold; color: #666; }
         .date-tab.active { background: var(--secondary); color: white; }
@@ -27,7 +32,7 @@
 
         .phrase-item { margin-bottom: 35px; position: relative; border-bottom: 2px #f0f0f0 solid; padding-bottom: 25px; }
         
-        .jp-text { color: #1a1a1a; font-size: 1.4rem; font-weight: 800; margin-bottom: 10px; display: block; }
+        .jp-text { color: #1a1a1a; font-size: 1.5rem; font-weight: 800; margin-bottom: 8px; display: block; }
         .target-phrase { font-size: 1.2rem; margin-bottom: 15px; color: #666; display: block; }
         
         .feedback-container { background: #f8f9fa; padding: 12px; border-radius: 12px; margin-bottom: 15px; border-left: 4px solid #ddd; }
@@ -44,19 +49,31 @@
         }
 
         .advice-msg { margin-top: 15px; font-size: 0.95rem; color: #444; background: #E3F2FD; padding: 12px; border-radius: 12px; display: none; border-left: 5px solid #2196F3; }
-        .status-msg { margin-top: 10px; font-size: 0.85rem; text-align: center; color: #999; }
-        .correct { color: var(--score-100); font-weight: bold; }
-        .error { color: var(--score-0); text-decoration: underline; font-weight: bold; }
+        
+        /* 単語ごとの状態色 */
+        .perfect { color: var(--score-100); font-weight: bold; } /* 完璧 */
+        .good { color: #FF9800; font-weight: bold; text-decoration: underline wavy; } /* 通じたけど発音が甘い */
+        .miss { color: var(--score-0); text-decoration: underline; font-weight: bold; } /* 聞き取れなかった */
     </style>
 </head>
 <body>
-    <h3 style="text-align:center; color: var(--secondary);">English Master Training 🔥</h3>
+    <div class="header-area">
+        <h3 style="margin:0; color: var(--secondary);">高校退学教師のK高等学校 🎓</h3>
+        <div class="view-count" id="visitorCount">Views: 1</div>
+    </div>
+    
     <div id="dateMenu" class="menu-container"></div>
     <div id="content">Loading...</div>
 
     <script>
         const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRAWmRJRNgjq3OtDdRPDvf3uXywGfHW6_saJSkox9Q0jHOUrg9RzjYCMcCeB8r5aesQUPJo1p1Lvbbm/pub?gid=0&single=true&output=csv';
         let allData = [];
+
+        // 簡易アクセスカウンター（ローカル保存）
+        let views = localStorage.getItem('page_views') || 0;
+        views++;
+        localStorage.setItem('page_views', views);
+        document.getElementById('visitorCount').innerText = `Total Views: ${views}`;
 
         async function loadData() {
             try {
@@ -98,7 +115,7 @@
                     const jp = row[j+1] ? row[j+1].trim() : "";
                     if (en.length < 2) continue;
                     const id = `phrase-${i}-${j}`;
-                    phrasesHtml += `<div class="phrase-item"><div class="score-box" id="score-${id}"></div><div class="jp-text">${jp}</div><div class="target-phrase" id="display-${id}">${en}</div><div class="feedback-container"><div class="feedback-text" id="feedback-${id}">あなたの声: ---</div></div><button class="speak-btn" onclick="check('${en.replace(/'/g, "\\'")}', '${id}')">🎤 発音チェック</button><div class="advice-msg" id="advice-${id}"></div><div class="status-msg" id="status-${id}"></div></div>`;
+                    phrasesHtml += `<div class="phrase-item"><div class="score-box" id="score-${id}"></div><div class="jp-text">${jp}</div><div class="target-phrase" id="display-${id}">${en}</div><div class="feedback-container"><div class="feedback-text" id="feedback-${id}">あなたの声: ---</div></div><button class="speak-btn" onclick="check('${en.replace(/'/g, "\\'")}', '${id}')">🎤 発音チェック</button><div class="advice-msg" id="advice-${id}"></div></div>`;
                 }
                 container.innerHTML += `<div class="practice-card">${ytBtn}${phrasesHtml}</div>`;
             });
@@ -107,29 +124,16 @@
         function getDetailedAdvice(word) {
             const w = word.toLowerCase();
             const rules = [
-                { k: 'th', m: '【Th音】舌先を上の前歯で軽く噛み、隙間から息を出すだけ！「サ」にならないように注意。' },
-                { k: 'r', m: '【R音】舌をどこにも付けず、喉の奥にグッと引いて！「ゥ」の口から始めるとGood。' },
-                { k: 'l', m: '【L音】舌先を上の前歯の付け根にガチッと押し当てて！弾くように発音して。' },
-                { k: 'f', m: '【F音】上の前歯を下の唇に軽く乗せて、隙間から息を吐き出すよ。' },
-                { k: 'v', m: '【V音】上の前歯で下唇を噛みながら、喉を震わせて「ヴー」と音を出して。' },
-                { k: 'sh', m: '【Sh音】静かにしてほしい時の「シィー！」と同じ口。アヒル口で。' },
-                { k: 'ch', m: '【Ch音】「ッチャ！」と破裂させる感じ。SHより強く息を出すのがコツ。' },
-                { k: 'w', m: '【W音】タコのように唇を思い切り丸めてから、一気に広げてみて。' },
-                { k: 'ae', m: '【æ音】「ア」と「エ」の中間。口を左右に引いて大げさに「ア」と言ってみて。' },
-                { k: 'z', m: '【Z音】前歯を閉じて、ハチが飛ぶ音のように「ズー」と震わせて。' },
-                { k: 's', m: '【S音】前歯を閉じて、隙間から鋭く「スゥー」と息を通すだけ。' },
-                { k: 'nk', m: '【nk音】「ンク」ではなく、鼻の奥を閉じて「ングッ」と詰める感じ。' },
-                { k: 'ng', m: '【ng音】最後を「グ」とはっきり言わず、鼻に抜ける音で止めてみて。' },
-                { k: 't', m: '【T音】舌先を弾いて、息を強く「ッ！」と吐き出すイメージ。' },
-                { k: 'd', m: '【D音】Tと同じ位置で、喉を震わせて「ドゥ」と短く。' },
-                { k: 'p', m: '【P音】閉じた唇を爆発させるように「プッ！」と息を出して。' },
-                { k: 'ee', m: '【ee音】思い切り口を横に引いて、長い「イー」を意識して！' },
-                { k: 'i', m: '【i音】「イ」よりも「エ」に近い、脱力した短い「イ」。' },
-                { k: 'o', m: '【o音】驚いた時の「オゥ！」のイメージ。口を縦に開けて。' },
-                { k: 'u', m: '【u音】お腹を殴られた時の「アッ」のように短く鋭く。' }
+                { k: 'th', m: '【Th音】舌先を上の前歯で軽く噛んでみて。サ行にならないように！' },
+                { k: 'r', m: '【R音】舌を喉の奥に引いて！「ゥ」の口から始めるとそれっぽくなるよ。' },
+                { k: 'l', m: '【L音】舌先を前歯の付け根に押し当てて、パッと離して！' },
+                { k: 'f', m: '【F音】上の前歯を下唇に軽く添えて、息を吹き出して。' },
+                { k: 'v', m: '【V音】Fの形で、喉を震わせて「ヴー」と音を出そう。' },
+                { k: 'sh', m: '【Sh音】アヒル口で「シィー！」と鋭く息を出して。' },
+                { k: 'ae', m: '【æ音】口を横に大きく開けて「ア」と「エ」を同時に言う感じ。' }
             ];
             for(let r of rules) { if(w.includes(r.k)) return r.m; }
-            return "単語を一つずつ、はっきりアクセントを意識して発音してみよう！";
+            return "アクセントを強めに、一単語ずつはっきり言ってみよう！";
         }
 
         function check(target, id) {
@@ -137,14 +141,13 @@
             const feedback = document.getElementById(`feedback-${id}`);
             const scoreBox = document.getElementById(`score-${id}`);
             const advice = document.getElementById(`advice-${id}`);
-            const status = document.getElementById(`status-${id}`);
             
             const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
             recognition.lang = 'en-US';
             recognition.onresult = (event) => {
                 const res = event.results[0][0];
                 const speech = res.transcript;
-                const confidence = res.confidence; // ★ここが難易度調整の鍵！
+                const confidence = res.confidence;
                 
                 const clean = (s) => s.toLowerCase().replace(/[.!?,]/g, "").trim();
                 const tWords = target.split(/\s+/);
@@ -152,38 +155,46 @@
                 
                 feedback.innerHTML = `あなたの声: "<b>${speech}</b>"`;
                 
-                let correctCount = 0;
-                let missedWord = "";
+                let totalConfidence = 0;
                 let resultHtml = "";
+                let missedWord = "";
 
                 tWords.forEach(word => {
-                    if (sWords.includes(clean(word))) {
-                        correctCount++;
-                        resultHtml += `<span class="correct">${word}</span> `;
+                    const cleanW = clean(word);
+                    if (sWords.includes(cleanW)) {
+                        // 認識されたけど自信度が低い(0.85未満)場合は「good（オレンジ）」にする
+                        if (confidence < 0.85) {
+                            resultHtml += `<span class="good">${word}</span> `;
+                            if(!missedWord) missedWord = word;
+                        } else {
+                            resultHtml += `<span class="perfect">${word}</span> `;
+                        }
+                        totalConfidence++;
                     } else {
+                        resultHtml += `<span class="miss">${word}</span> `;
                         if (!missedWord) missedWord = word;
-                        resultHtml += `<span class="error">${word}</span> `;
                     }
                 });
                 display.innerHTML = resultHtml;
 
-                // 基礎点 × 自信度 で最終スコアを計算（カタカナだとconfidenceが下がる）
-                let score = Math.round((correctCount / tWords.length) * 100 * (0.5 + (confidence * 0.5)));
+                let score = Math.round((totalConfidence / tWords.length) * 100 * (0.6 + (confidence * 0.4)));
                 if(score > 100) score = 100;
 
                 scoreBox.innerText = `${score}点`;
                 scoreBox.style.display = "block";
                 
                 if (score >= 90) { scoreBox.style.background = "var(--score-100)"; advice.style.display = "none"; confetti(); }
-                else if (score >= 70) { scoreBox.style.background = "var(--score-70)"; advice.style.display = "none"; }
-                else if (score >= 40) { scoreBox.style.background = "var(--score-40)"; scoreBox.style.color = "#333"; }
-                else { scoreBox.style.background = "var(--score-0)"; }
-
-                if (missedWord && score < 95) {
-                    advice.innerHTML = `💡 <b>発音矯正：</b><br>${getDetailedAdvice(missedWord)}`;
+                else if (score >= 70) { 
+                    scoreBox.style.background = "var(--score-70)"; 
+                    advice.innerHTML = `💡 <b>惜しい！</b><br>波線の単語は通じましたが、もっとはっきり発音するとスコアが上がります。`;
                     advice.style.display = "block";
                 }
-                status.innerText = score >= 90 ? "Excellent!" : "Try to be clearer!";
+                else { 
+                    scoreBox.style.background = (score >= 40) ? "var(--score-40)" : "var(--score-0)";
+                    advice.innerHTML = `💡 <b>"${missedWord}" のコツ:</b><br>${getDetailedAdvice(missedWord)}`;
+                    advice.style.display = "block";
+                    if(window.navigator.vibrate) window.navigator.vibrate(50); // 低スコアでブルッとさせる
+                }
             };
             recognition.start();
         }
