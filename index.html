@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>K高等学校 - スパルタ発音矯正</title>
+    <title>K高等学校 - 真のスパルタ発音矯正</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@700&display=swap');
@@ -112,41 +112,52 @@
         function check(target, id) {
             const btn = document.getElementById(`btn-${id}`); const fb = document.getElementById(`fb-${id}`);
             const area = document.getElementById(`area-${id}`); const scArea = document.getElementById(`sc-${id}`); const ad = document.getElementById(`ad-${id}`);
-            btn.classList.add('recording'); btn.innerText = "聴取中...（ネイティブになりきれ！）";
+            btn.classList.add('recording'); btn.innerText = "聴取中...（発音に集中！）";
             const rec = new (window.SpeechRecognition || window.webkitSpeechRecognition)(); 
             rec.lang = 'en-US'; rec.maxAlternatives = 1;
 
             rec.onresult = (e) => {
                 btn.classList.remove('recording'); btn.innerText = "🎤 判定スタート";
                 const res = e.results[0][0]; 
-                const speech = res.transcript; 
-                const confidence = res.confidence; // 自信度（0〜1）
-                fb.innerText = speech;
+                const speechRaw = res.transcript; 
+                const confidence = res.confidence; // 自信度
+                
+                const sWords = speechRaw.toLowerCase().replace(/[.!?,]/g, "").split(/\s+/);
+                const tWords = target.toLowerCase().replace(/[.!?,]/g, "").split(/\s+/);
+                
+                let displaySpeech = [];
+                let correctCount = 0; 
+                let html = ""; 
+                let missedChars = "";
+                let hasMiss = false;
 
-                const sWords = speech.toLowerCase().replace(/[.!?,]/g, "").split(/\s+/);
-                const tWords = target.split(/\s+/);
-                let correctCount = 0; let html = ""; let missedChars = ""; let hasMiss = false;
+                // 1語ずつ厳格にチェック
+                tWords.forEach((tw, idx) => {
+                    // 自信度が低い(0.85以下)、またはそもそも単語がリストにない場合
+                    const isCorrect = sWords.includes(tw) && confidence > 0.85;
 
-                tWords.forEach(w => {
-                    const cleanW = w.toLowerCase().replace(/[.!?,]/g, "");
-                    // 【スパルタ判定】単語が含まれていても、自信度が0.85未満ならミス扱いにする（カタカナ対策）
-                    const isPerfect = sWords.includes(cleanW) && (confidence > 0.85 || cleanW.length > 5);
-                    if(isPerfect) {
-                        html += `<span class="word-chip perfect" onclick="speak('${w}')">${w}</span> `;
+                    if(isCorrect) {
+                        html += `<span class="word-chip perfect" onclick="speak('${tw}')">${tw}</span> `;
+                        displaySpeech.push(tw);
                         correctCount++;
                     } else {
-                        html += `<span class="word-chip miss" onclick="speak('${w}')">${w}</span> `;
-                        missedChars += cleanW;
+                        html += `<span class="word-chip miss" onclick="speak('${tw}')">${tw}</span> `;
+                        // 下の「キミの英語」に???を表示して、忖度をやめる
+                        displaySpeech.push("???");
+                        missedChars += tw;
                         hasMiss = true;
                     }
                 });
+
+                // 「キミの英語」欄を更新（???混じりの結果に）
+                fb.innerText = displaySpeech.join(" ");
                 area.innerHTML = html;
 
                 const extra = Math.max(0, sWords.length - tWords.length);
                 let score = Math.round((correctCount / tWords.length) * 100) - (extra * 15);
                 if (score < 0) score = 0;
 
-                const isPass = score >= 70; // 70点以上で合格
+                const isPass = score >= 70;
                 sessionStats.total++; if(isPass) sessionStats.pass++;
                 document.getElementById('totalCount').innerText = sessionStats.total;
                 document.getElementById('passCount').innerText = sessionStats.pass;
@@ -158,12 +169,11 @@
                     confetti(); ad.style.display="none"; 
                 } else {
                     let tip = "";
-                    if(extra > 0) tip += `<b>余計な単語（${extra}個）を拾ったぜ！</b><br>もっと短く、正確に発音してみよう。<br>`;
-                    if(hasMiss) tip += `<b>赤色の単語をタップ</b>してお手本を聴こう。<br>`;
-                    if(confidence < 0.85 && !hasMiss) tip += `<b>惜しい！</b>聞き取れたけど発音がモゴモゴしてるぜ。<br>`;
+                    if(extra > 0) tip += `<b>余計な単語を拾ったぜ！</b><br>関係ない言葉を入れずにハッキリ発音してみよう。<br>`;
+                    if(hasMiss) tip += `<b>???（赤色の単語）</b>はお手本を聴いて改善だ。<br>`;
                     
                     for(let k in tips) { if(missedChars.includes(k)) { tip += `<br>💡コツ：${tips[k]}`; break; } }
-                    ad.innerHTML = tip || "もう少しハッキリ喋ってみようぜ！";
+                    ad.innerHTML = tip || "もっとネイティブっぽく言ってみよう！";
                     ad.style.display="block";
                 }
             };
