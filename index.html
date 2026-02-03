@@ -29,8 +29,9 @@
         .word-tap-area { font-size: 1.4rem; margin-bottom: 15px; min-height: 1.4em; line-height: 1.6; font-weight: 500; }
         .word-chip { cursor: pointer; padding: 2px 4px; display: inline-block; border-bottom: 2px solid #eee; margin-right: 4px; color: #333; }
         .word-chip.perfect { color: var(--perfect); font-weight: bold; border-bottom-color: transparent; }
-        .word-chip.miss { color: #999; }
-        .word-chip.miss b { color: var(--miss); text-decoration: underline; font-weight: bold; }
+        /* ここで赤文字を定義 */
+        .word-chip.miss { color: var(--miss); font-weight: bold; }
+        .word-chip.miss b { text-decoration: underline; background: #fff0f0; }
 
         .voice-section { background: #2d3436; border-radius: 15px; padding: 15px; color: #fff; position: relative; }
         .voice-label { font-size: 0.7rem; color: #aaa; display: block; margin-bottom: 5px; }
@@ -41,7 +42,7 @@
         .speak-btn { width: 100%; background: var(--primary); color: white; border: none; padding: 16px; border-radius: 30px; cursor: pointer; font-weight: bold; font-size: 1.1rem; margin-top: 15px; box-shadow: 0 4px 0 #E68A00; }
         .speak-btn.recording { background: #d63031 !important; box-shadow: 0 4px 0 #9b2222 !important; animation: pulse 1.5s infinite; }
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
-        .advice-box { margin-top: 12px; background: #fff9db; padding: 12px; border-radius: 10px; font-size: 0.85rem; border-left: 5px solid #fcc419; display: none; }
+        .advice-box { margin-top: 12px; background: #fff9db; padding: 12px; border-radius: 10px; font-size: 0.9rem; border-left: 5px solid #fcc419; display: none; color: #444; line-height: 1.5; }
     </style>
 </head>
 <body>
@@ -58,14 +59,21 @@
         const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRAWmRJRNgjq3OtDdRPDvf3uXywGfHW6_saJSkox9Q0jHOUrg9RzjYCMcCeB8r5aesQUPJo1p1Lvbbm/pub?gid=0&single=true&output=csv';
         let allVisibleData = [];
         let recognition = null;
-        const tips = { 'th':"舌先を軽く挟んで！", 'l':"前歯の裏に舌をつけて！", 'r':"舌を巻いて！", 'v':"下唇を噛んで！", 'f':"下唇を噛んで息を吐いて！" };
+        // フィードバックの核
+        const tips = { 
+            'th': "【th】舌先を軽く噛んで息を出すイメージ！", 
+            'l': "【l】舌の先を前歯の付け根にしっかり押し当てて！", 
+            'r': "【r】舌をどこにも付けずに奥に引っ込めて！", 
+            'v': "【v】上の歯で下唇を軽く押さえて震わせて！", 
+            'f': "【f】上の歯で下唇を軽く押さえて息を抜いて！" 
+        };
 
         const stats = {
-            data: JSON.parse(localStorage.getItem('kHighStats_v4')) || { total: 0, pass: 0, passedIds: [], lastDate: "" },
+            data: JSON.parse(localStorage.getItem('kHighStats_v5')) || { total: 0, pass: 0, passedIds: [], lastDate: "" },
             save() {
                 const today = new Date().toLocaleDateString();
                 if (this.data.lastDate !== today) { this.data.total = 0; this.data.lastDate = today; }
-                localStorage.setItem('kHighStats_v4', JSON.stringify(this.data));
+                localStorage.setItem('kHighStats_v5', JSON.stringify(this.data));
                 document.getElementById('totalCount').innerText = this.data.total;
                 document.getElementById('passCount').innerText = this.data.pass;
             }
@@ -82,7 +90,6 @@
                 const todayStr = `${now.getFullYear()}/${(now.getMonth()+1).toString().padStart(2,'0')}/${now.getDate().toString().padStart(2,'0')}`;
                 const currentHour = now.getHours();
 
-                // 未来の日付を除外 ＆ 今日なら18時以降のみ
                 allVisibleData = rawRows.slice(1).filter(r => {
                     const rowDate = r[0].replace(/-/g, '/');
                     if (rowDate > todayStr) return false;
@@ -115,14 +122,9 @@
             const container = document.getElementById('content');
             const vHeader = document.getElementById('videoHeader');
             container.innerHTML = '';
-            
             const dayRows = allVisibleData.filter(r => r[0] === date);
             if(dayRows.length > 0) {
-                vHeader.innerHTML = `
-                    <div class="video-header-card">
-                        <span class="video-display-title">${dayRows[0][1]}</span>
-                        <a href="${dayRows[0][12]}" target="_blank" class="yt-main-link">▶ ショート動画で見る</a>
-                    </div>`;
+                vHeader.innerHTML = `<div class="video-header-card"><span class="video-display-title">${dayRows[0][1]}</span><a href="${dayRows[0][12]}" target="_blank" class="yt-main-link">▶ ショート動画で見る</a></div>`;
             }
 
             dayRows.forEach((row, rowIndex) => {
@@ -152,51 +154,44 @@
         function startCheck(target, id) {
             if (recognition) { recognition.stop(); return; }
             const btn = document.getElementById(`btn-${id}`);
-            const fb = document.getElementById(`fb-${id}`);
             btn.classList.add('recording'); btn.innerText = "停止して判定";
-            fb.innerText = "聞き取り中...";
-            
             recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
             recognition.lang = 'en-US'; recognition.interimResults = true; 
             recognition.onresult = (e) => {
                 const transcript = Array.from(e.results).map(res => res[0].transcript).join('');
-                fb.innerText = transcript;
+                document.getElementById(`fb-${id}`).innerText = transcript;
                 if (e.results[0].isFinal) judge(target, transcript, id);
             };
-            recognition.onend = () => {
-                btn.classList.remove('recording'); btn.innerText = "🎤 判定スタート";
-                recognition = null;
-            };
+            recognition.onend = () => { btn.classList.remove('recording'); btn.innerText = "🎤 判定スタート"; recognition = null; };
             recognition.start();
         }
 
         function judge(target, result, id) {
-            // 記号とハイフンを消して比較用テキストを作成
             const clean = (s) => s.toLowerCase().replace(/[-.,!?]/g, " ").replace(/\s+/g, " ").trim();
             const cleanedResult = clean(result);
             const rWords = cleanedResult.split(" ");
-            
             const chips = document.getElementById(`area-${id}`).querySelectorAll('.word-chip');
-            let correctCount = 0;
             const targetWords = target.split(' ');
+            
+            let correctCount = 0;
+            let missedTips = new Set();
 
             targetWords.forEach((origW, i) => {
                 const chip = chips[i];
                 const cleanW = clean(origW);
-                // ハイフンが含まれる単語（mix-up）がバラで認識（mix up）されてもOKにする
                 const isMatch = rWords.includes(cleanW) || cleanedResult.includes(cleanW);
                 
                 if (isMatch) {
                     chip.className = 'word-chip perfect';
+                    chip.innerHTML = origW;
                     correctCount++;
                 } else {
-                    chip.className = 'word-chip miss';
-                    let disp = chip.getAttribute('data-orig');
-                    let adviceGiven = false;
+                    chip.className = 'word-chip miss'; // ここで赤くなる
+                    let disp = origW;
                     for (let key in tips) {
-                        if(cleanW.includes(key) && !adviceGiven) {
-                            disp = disp.replace(new RegExp(key, 'gi'), `<b>$&</b>`);
-                            adviceGiven = true;
+                        if(cleanW.includes(key)) {
+                            disp = disp.replace(new RegExp(key, 'gi'), `<b>$&</b>`); // 苦手箇所を強調
+                            missedTips.add(tips[key]);
                         }
                     }
                     chip.innerHTML = disp;
@@ -207,15 +202,23 @@
             stats.data.total++;
             document.getElementById(`sc-${id}`).innerHTML = `<span class="score-val">${score}点</span>`;
             
+            const ad = document.getElementById(`ad-${id}`);
             if (score >= 90) {
                 if (!stats.data.passedIds.includes(id)) { stats.data.pass++; stats.data.passedIds.push(id); }
                 document.getElementById(`card-${id}`).classList.add('cleared');
+                ad.innerHTML = "<strong>Perfect!</strong> その調子だぜ！";
                 confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+            } else {
+                let adviceHtml = "<strong>惜しい！赤文字の部分を意識して。</strong><br>";
+                if (missedTips.size > 0) {
+                    adviceHtml += Array.from(missedTips).map(t => `💡 ${t}`).join('<br>');
+                } else {
+                    adviceHtml += "💡 単語を一つずつ、ハッキリ発音してみよう！";
+                }
+                ad.innerHTML = adviceHtml;
             }
-            stats.save();
-            const ad = document.getElementById(`ad-${id}`);
-            ad.innerHTML = score >= 90 ? "完璧！最高の発音だぜ。" : `惜しい！赤文字の部分を意識してみて。<br>コツ: ${targetWords.length}語中${correctCount}語が正解。`;
             ad.style.display = "block";
+            stats.save();
         }
         init();
     </script>
