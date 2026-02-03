@@ -9,7 +9,7 @@
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@700&display=swap');
-        :root { --primary: #FF9800; --secondary: #1a237e; --bg: #F0F4F8; --perfect: #00C853; --miss: #ff4757; }
+        :root { --primary: #FF9800; --secondary: #1a237e; --bg: #F0F4F8; --perfect: #00C853; --miss: #ff4757; --yt-red: #FF0000; }
         body { font-family: sans-serif; background: var(--bg); margin: 0; padding: 10px; padding-bottom: 50px; -webkit-tap-highlight-color: transparent; }
         
         .header-area { text-align: center; margin-bottom: 5px; }
@@ -17,8 +17,24 @@
         
         .day-header { text-align: center; margin-bottom: 15px; }
         .video-title { font-weight: bold; font-size: 1.1rem; color: #333; margin-bottom: 10px; display: block; }
-        .video-link-btn { display: inline-flex; align-items: center; background: #fff; color: #333; text-decoration: none; padding: 8px 18px; border-radius: 25px; font-weight: bold; font-size: 0.85rem; border: 2px solid #ff0000; }
-        .yt-icon { color: #ff0000; font-size: 1.2rem; margin-right: 8px; font-weight: bold; }
+        
+        /* YouTubeアイコン風ボタン */
+        .video-link-btn { 
+            display: inline-flex; align-items: center; 
+            background: var(--yt-red); color: #fff; 
+            text-decoration: none; padding: 8px 16px; 
+            border-radius: 8px; font-weight: bold; font-size: 0.85rem; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .yt-logo-white {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 20px; height: 14px; background: white; border-radius: 3px; margin-right: 8px; position: relative;
+        }
+        .yt-logo-white::after {
+            content: ""; border-style: solid; border-width: 4px 0 4px 6px;
+            border-color: transparent transparent transparent var(--yt-red);
+            display: inline-block;
+        }
 
         .menu-container { display: flex; gap: 8px; overflow-x: auto; padding: 5px 0 15px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
         .date-tab { background: #fff; border: 1px solid #ddd; padding: 6px 12px; border-radius: 20px; cursor: pointer; white-space: nowrap; font-size: 0.85rem; }
@@ -40,14 +56,14 @@
         .score-val { font-size: 1.2rem; font-weight: 900; }
         .voice-text { font-size: 1.05rem; color: #55efc4; font-weight: bold; min-height: 1.2em; }
 
-        .speak-btn { width: 100%; background: var(--primary); color: white; border: none; padding: 16px; border-radius: 30px; cursor: pointer; font-weight: bold; font-size: 1rem; margin-top: 12px; box-shadow: 0 4px 0 #E68A00; }
+        .speak-btn { width: 100%; background: var(--primary); color: white; border: none; padding: 16px; border-radius: 30px; cursor: pointer; font-weight: bold; font-size: 1rem; margin-top: 12px; box-shadow: 0 4px 0 #E68A00; transition: 0.1s; }
         .speak-btn.recording { background: #d63031 !important; box-shadow: 0 4px 0 #9b2222 !important; }
         
         .advice-box { margin-top: 10px; background: #fff9db; padding: 10px; border-radius: 8px; font-size: 0.85rem; border-left: 4px solid #fcc419; display: none; color: #444; }
     </style>
 </head>
 <body>
-    <div class="header-area"><h1 class="main-title">K高-英語チェック</h1></div>
+    <div class="header-area"><h1 class="main-title">K高等学校-英語チェック</h1></div>
     
     <div id="dateMenu" class="menu-container"></div>
     <div id="dayHeaderArea"></div>
@@ -60,20 +76,15 @@
         let currentTarget = "";
         let currentId = "";
 
-        const tips = {
-            'th': "【th】舌を挟んで息を出せ",'r': "【r】舌を丸めろ",'l': "【l】舌先を前歯の裏に",'v': "【v】下唇を噛め",'f': "【f】下唇を噛め",
-            'sh': "【sh】強く息を",'ae': "【a】口を横に広げろ",'ee': "【ee】イーと伸ばせ",'ght': "【ght】音を繋げろ",'ing': "【ing】鼻から抜け"
-        };
+        const tips = { 'th': "舌を挟んで",'r': "舌を丸めて",'l': "舌先を前歯裏に",'v': "下唇を噛んで",'f': "下唇を噛んで",'sh': "強く息を",'ae': "口を横に",'ee': "イーと伸ばす" };
 
         async function init() {
             const res = await fetch(csvUrl);
             const text = await res.text();
             const rawRows = text.split(/\r?\n/).filter(line => line.includes(',')).map(r => r.split(','));
-            
             const now = new Date();
             const todayStr = `${now.getFullYear()}/${(now.getMonth()+1).toString().padStart(2,'0')}/${now.getDate().toString().padStart(2,'0')}`;
             const visibleData = rawRows.slice(1).filter(r => r[0].replace(/-/g, '/') <= todayStr);
-
             const dates = [...new Set(visibleData.map(r => r[0]))].sort((a,b) => b.localeCompare(a));
             const menu = document.getElementById('dateMenu');
             dates.forEach((d, i) => {
@@ -88,22 +99,21 @@
             const container = document.getElementById('content');
             const headerArea = document.getElementById('dayHeaderArea');
             container.innerHTML = '';
-            
             const dayRows = allData.filter(r => r[0] === date);
-            const title = dayRows[0][1] || "英単語チェック"; // B列
-            const videoUrl = dayRows[0][12] || "#"; // 以前の例に基づき動画URLは端っこ
+            const title = dayRows[0][1] || "英単語チェック";
+            const videoUrl = dayRows[0][12] || "#";
 
             headerArea.innerHTML = `
                 <div class="day-header">
                     <span class="video-title">${title}</span>
-                    <a href="${videoUrl}" target="_blank" class="video-link-btn"><span class="yt-icon">▶</span> ショート動画を見る</a>
+                    <a href="${videoUrl}" target="_blank" class="video-link-btn">
+                        <span class="yt-logo-white"></span> ショート動画を見る
+                    </a>
                 </div>`;
 
             dayRows.forEach((row, rowIndex) => {
-                // C列(2)から開始、C:英語(2), D:日本語(3), E:英語(4), F:日本語(5)...
                 for (let j = 2; j <= 10; j += 2) { 
-                    const en = row[j]?.trim();
-                    const jp = row[j+1]?.trim();
+                    const en = row[j]?.trim(); const jp = row[j+1]?.trim();
                     if (!en || en.length < 2) continue;
                     const id = `id-${date}-${rowIndex}-${j}`;
                     container.innerHTML += `
@@ -124,11 +134,22 @@
         function play(t) { const u = new SpeechSynthesisUtterance(t); u.lang = 'en-US'; window.speechSynthesis.speak(u); }
 
         function toggleSpeech(target, id) {
-            if (isRecording) {
-                if (recognition) recognition.stop();
-                return;
-            }
+            if (isRecording) { stopRecognition(); return; }
             currentTarget = target; currentId = id; startCheck();
+        }
+
+        function stopRecognition() {
+            if (recognition) { recognition.stop(); }
+            resetUI();
+        }
+
+        function resetUI() {
+            isRecording = false;
+            const btn = document.getElementById(`btn-${currentId}`);
+            if (btn) {
+                btn.classList.remove('recording');
+                btn.innerText = "🎤 判定スタート";
+            }
         }
 
         function startCheck() {
@@ -137,7 +158,7 @@
             fb.innerText = "...";
             
             window.SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            if (!window.SpeechRecognition) { alert("ブラウザが音声認識に対応していません"); return; }
+            if (!window.SpeechRecognition) return;
 
             recognition = new SpeechRecognition();
             recognition.lang = 'en-US';
@@ -145,29 +166,18 @@
             recognition.continuous = false;
 
             recognition.onstart = () => { isRecording = true; btn.classList.add('recording'); btn.innerText = "停止"; };
-            
-            recognition.onresult = (e) => {
-                const result = Array.from(e.results).map(r => r[0].transcript).join('');
-                fb.innerText = result;
-            };
+            recognition.onresult = (e) => { fb.innerText = Array.from(e.results).map(r => r[0].transcript).join(''); };
 
+            // 自動・手動問わず終了時に必ず実行
             recognition.onend = () => {
-                // iPhone対応: 確実にフラグを落としてUIをリセット
-                isRecording = false;
-                btn.classList.remove('recording');
-                btn.innerText = "🎤 判定スタート";
                 const finalResult = fb.innerText;
-                if (finalResult && finalResult !== "...") {
+                if (isRecording && finalResult && finalResult !== "...") {
                     judge(currentTarget, finalResult, currentId);
                 }
+                resetUI(); // 確実にボタンを戻す
             };
 
-            recognition.onerror = () => {
-                isRecording = false;
-                btn.classList.remove('recording');
-                btn.innerText = "🎤 判定スタート";
-            };
-
+            recognition.onerror = () => { resetUI(); };
             recognition.start();
         }
 
@@ -197,7 +207,6 @@
 
             const score = Math.round((matchCount / tWords.length) * 100);
             document.getElementById(`sc-${id}`).innerHTML = `<span class="score-val" style="color:${score >= 90 ? '#00C853' : '#ff4757'}">${score}点</span>`;
-            
             const ad = document.getElementById(`ad-${id}`);
             if (score >= 90) {
                 ad.innerHTML = "✨ Perfect!"; ad.style.display = "block";
