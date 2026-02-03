@@ -31,8 +31,10 @@
         .word-tap-area { font-size: 1.3rem; margin-bottom: 12px; line-height: 1.5; font-weight: bold; }
         .word-chip { cursor: pointer; padding: 2px 1px; display: inline-block; border-bottom: 2px solid #eee; margin-right: 2px; color: #333; }
         .word-chip.perfect { color: var(--perfect); border-bottom: none; }
-        .word-chip.miss { color: #ccc; }
-        .word-chip.miss b { color: var(--miss); text-decoration: underline; font-weight: 900; background: #fff0f0; }
+        
+        /* 間違った箇所の強調 */
+        .word-chip.miss { color: #888; }
+        .word-chip.miss b { color: var(--miss) !important; text-decoration: underline; font-weight: 900; background: #fff0f0; }
 
         .voice-section { background: #2d3436; border-radius: 12px; padding: 12px; color: #fff; display: flex; flex-direction: column; gap: 5px; }
         .voice-header { display: flex; justify-content: space-between; align-items: flex-start; }
@@ -44,7 +46,7 @@
         .speak-btn { width: 100%; background: var(--primary); color: white; border: none; padding: 14px; border-radius: 30px; cursor: pointer; font-weight: bold; font-size: 1rem; margin-top: 12px; box-shadow: 0 4px 0 #E68A00; }
         .speak-btn.recording { background: #d63031 !important; box-shadow: 0 4px 0 #9b2222 !important; }
         
-        .advice-box { margin-top: 10px; background: #fff9db; padding: 10px; border-radius: 8px; font-size: 0.8rem; border-left: 4px solid #fcc419; display: none; color: #444; }
+        .advice-box { margin-top: 10px; background: #fff9db; padding: 10px; border-radius: 8px; font-size: 0.8rem; border-left: 4px solid #fcc419; display: none; color: #444; line-height: 1.4; }
     </style>
 </head>
 <body>
@@ -69,34 +71,47 @@
         let isRecording = false;
 
         const tips = {
-            'th': "【th】舌を挟んで",'r': "【r】舌を丸めて",'l': "【l】前歯の裏に",'v': "【v】下唇を噛んで",'f': "【f】前歯で押さえて",
-            'sh': "【sh】シーの口",'ae': "【a】広いア",'ee': "【ee】横にイー",'ght': "【ght】弱く",'ing': "【ing】鼻からン",
-            's': "【s】息を漏らして",'z': "【z】喉を震わせて",'w': "【w】口を丸めて",'ch': "【ch】鋭くチッ",'dg': "【dg】喉を鳴らして",
-            'ph': "【ph】fと同じ",'ea': "【ea】イーと伸ばす",'ou': "【ou】アウと発音",'ow': "【ow】アウ！",'ar': "【ar】rを意識"
+            'th': "舌を挟む",'r': "舌を丸める",'l': "前歯の裏に",'v': "唇を噛む",'f': "前歯で押さえる",
+            'sh': "シーの口",'ae': "広いア",'ee': "横にイー",'ght': "弱く",'ing': "鼻からン",
+            's': "息を漏らす",'z': "喉を震わす",'w': "口を丸める",'ch': "鋭くチッ",'dg': "喉を鳴らす",
+            'ph': "fと同じ",'ea': "イーと伸ばす",'ou': "アウ",'ow': "アウ",'ar': "rを意識"
         };
 
         const stats = {
-            data: JSON.parse(localStorage.getItem('kHighStats_v10')) || { total: 0, pass: 0, passedIds: [] },
+            data: JSON.parse(localStorage.getItem('kHighStats_v11')) || { total: 0, pass: 0, passedIds: [] },
             save() {
-                localStorage.setItem('kHighStats_v10', JSON.stringify(this.data));
+                localStorage.setItem('kHighStats_v11', JSON.stringify(this.data));
                 document.getElementById('totalCount').innerText = this.data.total;
                 document.getElementById('passCount').innerText = this.data.pass;
             }
         };
 
-        function resetStats() { if(confirm("今までの記録をリセットするぜ？")) { localStorage.removeItem('kHighStats_v10'); location.reload(); } }
+        function resetStats() { if(confirm("記録をリセットするぜ？")) { localStorage.removeItem('kHighStats_v11'); location.reload(); } }
 
         async function init() {
             stats.save();
             const res = await fetch(csvUrl);
             const text = await res.text();
             const rawRows = text.split(/\r?\n/).filter(line => line.includes(',')).map(r => r.split(','));
-            const dates = [...new Set(rawRows.slice(1).map(r => r[0]))].filter(d => d).sort((a,b) => b.localeCompare(a));
+            
+            // 日付制限ロジック
+            const now = new Date();
+            const todayStr = `${now.getFullYear()}/${(now.getMonth()+1).toString().padStart(2,'0')}/${now.getDate().toString().padStart(2,'0')}`;
+            const currentHour = now.getHours();
+
+            const visibleData = rawRows.slice(1).filter(r => {
+                const rowDate = r[0].replace(/-/g, '/');
+                if (rowDate < todayStr) return true;
+                if (rowDate === todayStr && currentHour >= 18) return true;
+                return false;
+            });
+
+            const dates = [...new Set(visibleData.map(r => r[0]))].filter(d => d).sort((a,b) => b.localeCompare(a));
             const menu = document.getElementById('dateMenu');
             dates.forEach((d, i) => {
                 const btn = document.createElement('button');
                 btn.className = 'date-tab'; btn.innerText = d;
-                btn.onclick = () => { document.querySelectorAll('.date-tab').forEach(t => t.classList.remove('active')); btn.classList.add('active'); render(rawRows.slice(1), d); };
+                btn.onclick = () => { document.querySelectorAll('.date-tab').forEach(t => t.classList.remove('active')); btn.classList.add('active'); render(visibleData, d); };
                 menu.appendChild(btn); if(i === 0) btn.click();
             });
         }
@@ -135,31 +150,20 @@
         function startCheck(target, id) {
             const btn = document.getElementById(`btn-${id}`);
             const fb = document.getElementById(`fb-${id}`);
-            fb.innerText = ""; // 初期化
-
+            fb.innerText = "";
             recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
             recognition.lang = 'en-US';
             recognition.interimResults = true;
-
             recognition.onstart = () => { isRecording = true; btn.classList.add('recording'); btn.innerText = "停止"; };
-            
             recognition.onresult = (e) => {
                 const transcript = Array.from(e.results).map(res => res[0].transcript).join('');
                 fb.innerText = transcript;
-                if (e.results[0].isFinal) {
-                    judge(target, transcript, id);
-                    recognition.stop(); // 判定後に確実に止める
-                }
+                if (e.results[0].isFinal) { judge(target, transcript, id); recognition.stop(); }
             };
-
-            recognition.onend = () => {
-                isRecording = false;
-                btn.classList.remove('recording');
-                btn.innerText = "🎤 判定スタート";
-                // 自動終了時もマイクを解放
+            recognition.onend = () => { 
+                isRecording = false; btn.classList.remove('recording'); btn.innerText = "🎤 判定スタート"; 
                 if(recognition) { recognition.abort(); recognition = null; }
             };
-
             recognition.start();
         }
 
@@ -168,26 +172,25 @@
             const rWords = clean(result).split(/\s+/);
             const tWords = target.split(/\s+/);
             const chips = document.getElementById(`area-${id}`).querySelectorAll('.word-chip');
-            let matchCount = 0;
-            let missedTips = new Set();
+            let matchCount = 0; let missedTips = new Set();
 
             tWords.forEach((origW, i) => {
                 const cleanT = clean(origW);
                 const chip = chips[i];
                 if (rWords.includes(cleanT)) {
-                    chip.className = 'word-chip perfect'; chip.innerHTML = origW;
-                    matchCount++;
+                    chip.className = 'word-chip perfect'; chip.innerHTML = origW; matchCount++;
                 } else {
                     chip.className = 'word-chip miss';
                     let disp = origW;
-                    // 発音フィードバック20種適用
+                    let hasTip = false;
                     for (let k in tips) {
-                        if (cleanT.toLowerCase().includes(k)) {
-                            const regex = new RegExp(k, 'gi');
-                            disp = disp.replace(regex, `<b>$&</b>`);
+                        if (cleanT.includes(k)) {
+                            disp = disp.replace(new RegExp(k, 'gi'), `<b>$&</b>`);
                             missedTips.add(tips[k]);
+                            hasTip = true;
                         }
                     }
+                    if(!hasTip) missedTips.add("全体をはっきり発音");
                     chip.innerHTML = disp;
                 }
             });
@@ -197,7 +200,7 @@
             document.getElementById(`sc-${id}`).innerHTML = `<span class="score-val" style="color:${scoreColor}">${score}点</span>`;
             
             const ad = document.getElementById(`ad-${id}`);
-            ad.innerHTML = score >= 90 ? "✨ <strong>Perfect!</strong>" : `💡 ${Array.from(missedTips).join(' / ') || "もう一度！"}`;
+            ad.innerHTML = score >= 90 ? "✨ <strong>Perfect!</strong>" : `💡 <strong>攻略ポイント:</strong><br>${Array.from(missedTips).slice(0,3).map(t => `・${t}`).join('<br>')}`;
             ad.style.display = "block";
 
             if (score >= 90 && !stats.data.passedIds.includes(id)) {
