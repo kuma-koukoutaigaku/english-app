@@ -51,13 +51,10 @@
         const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRAWmRJRNgjq3OtDdRPDvf3uXywGfHW6_saJSkox9Q0jHOUrg9RzjYCMcCeB8r5aesQUPJo1p1Lvbbm/pub?gid=0&single=true&output=csv';
         let allData = [];
         let recognition = null;
-        const tips = { 'th':"上顎の前歯で舌の先を軽く挟んで！", 'l':"舌の先を上の前歯の裏に押し当てて！", 'r':"舌を浮かせ、口の奥にグイッと引いて！", 'v':"上の前歯を下唇の内側に当てて！", 'f':"上の前歯で下唇を軽く押さえて息を出して！", 's':"歯の隙間から鋭く息を吐いて！", 'sh':"口を突き出し「シーッ」と強く！", 'ae':"アとエの中間の音を狙って！", 'ou':"オから始めて最後は口をすぼめる！", 'ei':"エの後に軽くイを添えて！", 'w':"口を丸めて突き出してから広げる！", 'z':"喉を震わせてハチの羽音のように！", 'ch':"一気に「チッ」と弾けさせて！", 'dg':"喉を震わせて力強く「ヂッ」！", 'm':"唇を閉じて鼻に響かせて！", 'n':"舌先を歯茎に付けて鼻から抜く！", 'ng':"喉の入り口を塞いで鼻から抜く！", 't':"鋭く「トゥッ」と息を飛ばして！", 'd':"喉を震わせ「ドゥッ」と放て！", 'b':"唇を結んで爆発させるように！" };
 
         const stats = {
             data: JSON.parse(localStorage.getItem('kHighStats')) || { total: 0, pass: 0, lastDate: "", passedItems: [] },
             save() {
-                const today = new Date().toLocaleDateString();
-                if (this.data.lastDate !== today) { this.data.total = 0; this.data.lastDate = today; }
                 localStorage.setItem('kHighStats', JSON.stringify(this.data));
                 document.getElementById('totalCount').innerText = this.data.total;
                 document.getElementById('passCount').innerText = this.data.pass;
@@ -68,7 +65,25 @@
             }
         };
 
-        function formatDateNum(dateStr) { return dateStr.replace(/\D/g, ''); }
+        // CSVを正しく分割する関数
+        function parseCSV(text) {
+            const lines = text.split(/\r?\n/);
+            return lines.map(line => {
+                const result = [];
+                let cell = '';
+                let inQuote = false;
+                for (let i = 0; i < line.length; i++) {
+                    const char = line[i];
+                    if (char === '"') inQuote = !inQuote;
+                    else if (char === ',' && !inQuote) {
+                        result.push(cell.trim());
+                        cell = '';
+                    } else cell += char;
+                }
+                result.push(cell.trim());
+                return result;
+            });
+        }
 
         async function init() {
             stats.save();
@@ -76,23 +91,24 @@
                 const res = await fetch(csvUrl);
                 const text = await res.text();
                 const now = new Date();
+                const todayNum = parseInt(`${now.getFullYear()}${(now.getMonth()+1).toString().padStart(2,'0')}${now.getDate().toString().padStart(2,'0')}`);
                 const currentHour = now.getHours();
-                const todayNum = `${now.getFullYear()}${(now.getMonth()+1).toString().padStart(2,'0')}${now.getDate().toString().padStart(2,'0')}`;
                 
-                // CSVパース（カンマ区切り。ただし引用符内のカンマは無視）
-                allData = text.split(/\r?\n/).map(line => line.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g) || []);
+                allData = parseCSV(text);
                 
                 const filteredRows = allData.slice(1).filter(r => {
                     if (!r[0]) return false;
-                    const rowDateNum = formatDateNum(r[0]);
+                    const rowDateNum = parseInt(r[0].replace(/\D/g, ''));
+                    if (isNaN(rowDateNum)) return false;
+                    // 未来の日付は出さない。今日の日付は18時以降のみ。
                     return (rowDateNum < todayNum) || (rowDateNum === todayNum && currentHour >= 18);
                 });
 
-                const dates = [...new Set(filteredRows.map(r => r[0].trim()))].filter(d => d).sort((a,b) => b.localeCompare(a));
+                const dates = [...new Set(filteredRows.map(r => r[0]))].sort((a,b) => b.localeCompare(a));
                 const menu = document.getElementById('dateMenu');
                 
                 if (dates.length === 0) {
-                    document.getElementById('content').innerHTML = "<p style='text-align:center; padding:30px;'>18時まで待機中...<br>またはデータが見つかりません</p>";
+                    document.getElementById('content').innerHTML = "<p style='text-align:center; padding:30px;'>データ読み込み中、または18時までお待ちください。</p>";
                     return;
                 }
 
@@ -113,33 +129,32 @@
         function render(date) {
             const container = document.getElementById('content');
             container.innerHTML = '';
-            const targetRows = allData.filter(r => r[0] && r[0].trim() === date);
+            const targetRows = allData.filter(r => r[0] === date);
             
             targetRows.forEach((row, rowIndex) => {
-                const videoTitle = row[1]?.replace(/"/g,'') || "英会話レッスン";
-                const videoLink = row[12]?.replace(/"/g,'') || "#"; // M列(12)
+                const title = row[1] || "英会話";
+                const yt = row[12] || "#";
                 
-                // C列(2)からK列(10)まで、英語(偶数)・日本語(奇数)のペアでループ
                 for (let j = 2; j <= 10; j += 2) {
-                    let en = row[j]?.replace(/"/g,'').trim();
-                    let jp = row[j+1]?.replace(/"/g,'').trim();
+                    const en = row[j];
+                    const jp = row[j+1];
                     if (!en || en.length < 2) continue;
-                    
-                    const id = `q-${formatDateNum(date)}-${rowIndex}-${j}`;
+
+                    const id = `q-${date.replace(/\D/g,'')}-${rowIndex}-${j}`;
                     const isCleared = stats.data.passedItems.includes(id);
-                    
-                    container.innerHTML += `<div class="practice-card ${isCleared ? 'cleared' : ''}" id="card-${id}">
-                        <div class="card-header"><span class="video-title">📺 ${videoTitle}</span><a href="${videoLink}" target="_blank" class="yt-btn">動画</a></div>
-                        <div class="phrase-item">
+
+                    container.innerHTML += `
+                        <div class="practice-card ${isCleared ? 'cleared' : ''}" id="card-${id}">
+                            <div class="card-header"><span class="video-title">📺 ${title}</span><a href="${yt}" target="_blank" class="yt-btn">動画</a></div>
                             <span class="jp-text">${jp}</span>
                             <div class="word-tap-area" id="area-${id}">${en.split(' ').map(w => `<span class="word-chip" data-orig="${w}" onclick="play('${w.replace(/'/g,"")}')">${w}</span>`).join('')}</div>
                             <div class="voice-section">
                                 <div class="voice-info"><span class="voice-label">キミの声</span><div class="voice-text" id="fb-${id}">...</div></div>
-                                <div class="score-display"><span style="font-size:0.6rem;color:#aaa">SCORE</span><span class="score-val" id="val-${id}">--</span></div>
+                                <div class="score-display"><span class="score-val" id="val-${id}">--</span></div>
                             </div>
                             <button class="speak-btn" id="btn-${id}" onclick="startCheck('${en.replace(/'/g,"\\'")}', '${id}')">🎤 判定スタート</button>
                             <div class="advice-box" id="ad-${id}"></div>
-                        </div></div>`;
+                        </div>`;
                 }
             });
         }
@@ -153,9 +168,9 @@
             if (recognition) { recognition.stop(); return; }
             const btn = document.getElementById(`btn-${id}`);
             const fb = document.getElementById(`fb-${id}`);
-            fb.innerText = "Listening...";
+            fb.innerText = "聴いています...";
             btn.classList.add('recording');
-            btn.innerText = "停止して判定";
+            btn.innerText = "止めて判定";
             recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
             recognition.lang = 'en-US';
             recognition.interimResults = true;
@@ -172,46 +187,31 @@
             const tWords = target.toLowerCase().replace(/[.!?,]/g, "").split(' ');
             const rWords = result.toLowerCase().replace(/[.!?,]/g, "").split(' ');
             const chips = document.getElementById(`area-${id}`).querySelectorAll('.word-chip');
-            const targetKeys = Object.keys(tips).sort((a,b) => b.length - a.length);
-            let correctCount = 0;
-            let firstMissedKey = null;
+            let correct = 0;
 
             tWords.forEach((tw, i) => {
-                const chip = chips[i];
-                if (!chip) return;
-                const originalText = chip.getAttribute('data-orig');
                 if (rWords.includes(tw)) {
-                    chip.className = 'word-chip perfect';
-                    chip.innerText = originalText;
-                    correctCount++;
+                    chips[i].className = 'word-chip perfect';
+                    correct++;
                 } else {
-                    chip.className = 'word-chip miss';
-                    let highlighted = originalText;
-                    for(let k of targetKeys) {
-                        if(tw.includes(k)) {
-                            highlighted = originalText.replace(new RegExp(`(${k})`, 'gi'), `<b>$1</b>`);
-                            if(!firstMissedKey) firstMissedKey = k;
-                            break; 
-                        }
-                    }
-                    chip.innerHTML = highlighted;
+                    chips[i].className = 'word-chip miss';
                 }
             });
 
-            const score = Math.round((correctCount / tWords.length) * 100);
+            const score = Math.round((correct / tWords.length) * 100);
             stats.data.total++;
             document.getElementById(`val-${id}`).innerText = score;
-
             const ad = document.getElementById(`ad-${id}`);
-            if (score >= 90) { 
+            ad.style.display = "block";
+
+            if (score >= 90) {
                 stats.addPass(id);
                 document.getElementById(`card-${id}`).classList.add('cleared');
-                ad.innerHTML = "合格！";
+                ad.innerHTML = "合格！完璧！";
                 if(score === 100) confetti();
             } else {
-                ad.innerHTML = `不合格(90点以上で合格)。${firstMissedKey ? `<br><b>💡コツ:</b> ${tips[firstMissedKey]}` : ""}`;
+                ad.innerHTML = "不合格（90点以上で合格）。もう一回！";
             }
-            ad.style.display = "block";
             stats.save();
         }
         init();
