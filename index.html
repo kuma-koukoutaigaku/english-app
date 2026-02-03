@@ -50,7 +50,7 @@
     <div class="header-area"><h1 class="main-title">高校退学教師のK高等学校</h1></div>
     <div class="stats-bar">
         <div class="stat-item">🔥 本日の挑戦: <span id="totalCount">0</span>回</div>
-        <div class="stat-item">🏆 合格数: <span id="passCount">0</span>個</div>
+        <div class="stat-item">🏆 累計合格数: <span id="passCount">0</span>個</div>
     </div>
     <div id="dateMenu" class="menu-container"></div>
     <div id="content">読み込み中...</div>
@@ -58,8 +58,31 @@
     <script>
         const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRAWmRJRNgjq3OtDdRPDvf3uXywGfHW6_saJSkox9Q0jHOUrg9RzjYCMcCeB8r5aesQUPJo1p1Lvbbm/pub?gid=0&single=true&output=csv';
         let allData = [];
-        let sessionStats = { total: 0, pass: 0 };
         let currentRecognition = null;
+
+        // 保存・読み込み機能
+        const stats = {
+            load() {
+                const saved = JSON.parse(localStorage.getItem('kHighStats')) || { total: 0, pass: 0, lastDate: "" };
+                const today = new Date().toLocaleDateString();
+                // 日付が変わってたら「今日の挑戦」だけリセット
+                if (saved.lastDate !== today) {
+                    saved.total = 0;
+                    saved.lastDate = today;
+                }
+                return saved;
+            },
+            save(data) {
+                localStorage.setItem('kHighStats', JSON.stringify(data));
+                this.updateDisplay(data);
+            },
+            updateDisplay(data) {
+                document.getElementById('totalCount').innerText = data.total;
+                document.getElementById('passCount').innerText = data.pass;
+            }
+        };
+
+        let currentStats = stats.load();
 
         const tips = {
             'th': "前歯で舌を軽く噛んで！", 'l': "舌先を前歯の裏の付け根に押し当てて！",
@@ -77,6 +100,7 @@
         const scoreMsgs = ["話にならん", "声出てる？", "絶望的だな", "寝てるの？", "修行し直せ", "やる気ある？", "カタカナすぎ", "おしいねぇ", "聞き取れん", "まだまだ", "半分正解！", "悪くないぞ", "あと少し！", "合格ライン", "いい感じ！", "ナイス発音", "ほぼ完璧！", "素晴らしい", "神レベル！", "伝説の誕生"];
 
         async function loadData() {
+            stats.updateDisplay(currentStats);
             try {
                 const res = await fetch(csvUrl);
                 const text = await res.text();
@@ -183,10 +207,7 @@
                     if (e.results[i].isFinal) final += e.results[i][0].transcript;
                     else interim += e.results[i][0].transcript;
                 }
-                
-                // リアルタイム表示
                 fb.innerText = final + interim;
-
                 if (final !== '') {
                     processScore(final, targetRaw, id, area, scArea, ad);
                     rec.stop();
@@ -215,20 +236,23 @@
                     newHtml += `<span class="word-chip perfect" onclick="speak('${tw}')">${original}</span> `;
                     correctCount++;
                 } else {
+                    // ここでハイライト処理を入れる
                     newHtml += `<span class="word-chip miss" onclick="speak('${tw}')">${getHighlightedWord(original)}</span> `;
                     missedText += tw;
                 }
             });
 
-            // HTMLとして確実に描画
-            area.innerHTML = "";
-            area.insertAdjacentHTML('beforeend', newHtml);
+            // バグ対策：確実にinnerHTMLをリセットして再描画
+            area.innerHTML = newHtml;
 
             let score = Math.round((correctCount / tWordsMatch.length) * 100);
             let isPass = score >= 70;
-            sessionStats.total++; if(isPass) sessionStats.pass++;
-            document.getElementById('totalCount').innerText = sessionStats.total;
-            document.getElementById('passCount').innerText = sessionStats.pass;
+            
+            // 保存データの更新
+            currentStats.total++;
+            if(isPass) currentStats.pass++;
+            stats.save(currentStats);
+
             scArea.innerHTML = `<span class="score-val" style="color:${isPass ? "#00C853":"#FF9800"}">${score}点</span><span class="score-status" style="color:${isPass ? "#00C853":"#FF9800"}">${scoreMsgs[Math.min(Math.floor(score/5),19)]}</span>`;
             
             if(isPass && score === 100) { confetti(); ad.style.display = "none"; }
