@@ -28,7 +28,6 @@
         .word-chip { cursor: pointer; padding: 2px 6px; border-radius: 6px; display: inline-block; transition: 0.2s; border-bottom: 1px dashed #ccc; }
         .word-chip.perfect { color: var(--perfect); font-weight: bold; border-bottom: none; }
         .word-chip.miss { color: var(--miss-word); background: var(--miss-bg); font-weight: bold; border-bottom: 2px solid var(--miss-word); }
-        /* 間違えた文字（赤）に下線を引いて強調 */
         .char-highlight { color: var(--miss-char); text-decoration: underline; text-decoration-thickness: 2px; }
         .voice-section { background: #2d3436; border-radius: 15px; padding: 15px; color: #fff; position: relative; min-height: 60px; }
         .voice-label { font-size: 0.75rem; color: #aaa; display: block; margin-bottom: 5px; }
@@ -52,7 +51,11 @@
     <div id="content">読み込み中...</div>
 
     <script>
+        // 【設定】CSVのURL
         const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRAWmRJRNgjq3OtDdRPDvf3uXywGfHW6_saJSkox9Q0jHOUrg9RzjYCMcCeB8r5aesQUPJo1p1Lvbbm/pub?gid=0&single=true&output=csv';
+        // 【設定】Googleフォーム連動用（後で設定可能）
+        const GOOGLE_FORM_URL = ""; 
+
         let allData = [];
         let sessionStats = { total: 0, pass: 0 };
 
@@ -125,7 +128,7 @@
                     if (!en || en.length < 2) continue;
                     const id = `p-${i}-${j}`;
                     const chips = en.split(' ').map(w => `<span class="word-chip" onclick="speak('${w.replace(/'/g,"")}')">${w}</span>`).join(' ');
-                    phs += `<div class="phrase-item"><span class="jp-text">${jp}</span><div class="word-tap-area" id="area-${id}">${chips}</div><div class="voice-section"><span class="voice-label">キミの英語</span><div class="voice-text" id="fb-${id}">...</div><div class="score-display" id="sc-${id}"></div></div><button class="speak-btn" id="btn-${id}" onclick="check('${en.replace(/'/g,"\\'")}', '${id}')">🎤 判定スタート</button><div class="advice-box" id="ad-${id}"></div></div>`;
+                    phs += `<div class="phrase-item"><span class="jp-text">${jp}</span><div class="word-tap-area" id="area-${id}">${chips}</div><div class="voice-section"><span class="voice-label">キミの英語（AIにはこう聞こえたぞ）</span><div class="voice-text" id="fb-${id}">...</div><div class="score-display" id="sc-${id}"></div></div><button class="speak-btn" id="btn-${id}" onclick="check('${en.replace(/'/g,"\\'")}', '${id}')">🎤 判定スタート</button><div class="advice-box" id="ad-${id}"></div></div>`;
                 }
                 container.innerHTML += `<div class="practice-card"><div class="yt-area"><a href="${yt}" target="_blank" class="yt-link"><svg class="yt-icon" viewBox="0 0 24 24"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/></svg><span class="yt-sub-text">ショート動画で見る</span><span class="yt-video-title">${title}</span></a></div>${phs}</div>`;
             });
@@ -137,23 +140,16 @@
             window.speechSynthesis.speak(u);
         }
 
-        // タグを壊さないようにハイライトを生成する関数
         function highlightMissedWord(word) {
             let processed = word;
             const keys = Object.keys(tips).sort((a,b) => b.length - a.length);
-            
-            // 一時的なプレースホルダーに置換
             keys.forEach((key, index) => {
                 const reg = new RegExp(key, 'gi');
                 processed = processed.replace(reg, `__${index}__`);
             });
-
-            // プレースホルダーを実際のタグに変換
             keys.forEach((key, index) => {
                 const reg = new RegExp(`__${index}__`, 'g');
-                processed = processed.replace(reg, (match) => {
-                    return `<span class="char-highlight">${key}</span>`;
-                });
+                processed = processed.replace(reg, `<span class="char-highlight">${key}</span>`);
             });
             return processed;
         }
@@ -183,7 +179,6 @@
                 const tWordsDisplay = targetRaw.split(/\s+/);
                 const tWordsMatch = targetRaw.toLowerCase().replace(/[.!?,]/g, "").split(/\s+/);
 
-                let displaySpeech = [];
                 let correctCount = 0;
                 let html = "";
                 let hasMiss = false;
@@ -197,19 +192,18 @@
 
                     if(isClear) {
                         html += `<span class="word-chip perfect" onclick="speak('${tw}')">${originalWord}</span> `;
-                        displaySpeech.push(originalWord);
                         correctCount++;
                     } else {
                         const styledWord = highlightMissedWord(originalWord);
                         html += `<span class="word-chip miss" onclick="speak('${tw}')">${styledWord}</span> `;
-                        displaySpeech.push("???");
                         missedChars += tw;
                         hasMiss = true;
                     }
                 });
 
                 area.innerHTML = html;
-                fb.innerText = displaySpeech.join(" ");
+                // アイデア2：AIが実際に聞き取った単語を表示する
+                fb.innerText = res.transcript;
 
                 const extra = Math.max(0, sWords.length - tWordsMatch.length);
                 let score = Math.round((correctCount / tWordsMatch.length) * 100) - (extra * 10);
