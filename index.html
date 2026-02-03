@@ -17,27 +17,22 @@
         .menu-container { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 10px; }
         .date-tab { background: #fff; border: 1px solid #ddd; padding: 10px 18px; border-radius: 20px; cursor: pointer; white-space: nowrap; }
         .date-tab.active { background: var(--secondary); color: white; }
-        
         .practice-card { background: white; border-radius: 24px; padding: 20px; margin-bottom: 25px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); transition: background 0.3s; border: 2px solid transparent; }
         .practice-card.cleared { background: var(--cleared); border-color: #bbdefb; }
-        
         .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
         .video-title { font-weight: bold; color: #555; font-size: 0.85rem; max-width: 60%; }
         .yt-btn { background: #ff0000; color: white; text-decoration: none; padding: 6px 10px; border-radius: 15px; font-size: 0.75rem; font-weight: bold; flex-shrink: 0; }
-
         .jp-text { font-size: 1.1rem; font-weight: 800; margin-bottom: 8px; display: block; color: #333; }
         .word-tap-area { font-size: 1.3rem; margin-bottom: 15px; min-height: 1.4em; line-height: 1.5; }
         .word-chip { cursor: pointer; padding: 2px 4px; display: inline-block; border-bottom: 1px dashed #ccc; margin-right: 5px; color: #333; }
         .word-chip.perfect { color: var(--perfect); font-weight: bold; border-bottom: none; }
         .word-chip.miss b { color: var(--miss); text-decoration: underline; font-weight: 900; }
-
         .voice-section { background: #2d3436; border-radius: 15px; padding: 15px; color: #fff; position: relative; display: flex; align-items: center; justify-content: space-between; }
         .voice-info { flex-grow: 1; padding-right: 10px; }
         .voice-label { font-size: 0.7rem; color: #aaa; display: block; margin-bottom: 5px; }
         .voice-text { font-size: 1.1rem; color: #55efc4; font-weight: bold; min-height: 1.2em; }
         .score-display { text-align: center; border-left: 1px solid #444; padding-left: 15px; min-width: 60px; }
         .score-val { font-size: 1.4rem; font-weight: 900; display: block; }
-
         .speak-btn { width: 100%; background: var(--primary); color: white; border: none; padding: 15px; border-radius: 30px; cursor: pointer; font-weight: bold; font-size: 1.1rem; margin-top: 10px; box-shadow: 0 4px 0 #E68A00; }
         .speak-btn.recording { background: #d63031 !important; box-shadow: 0 4px 0 #9b2222 !important; }
         .advice-box { margin-top: 10px; background: #fff9db; padding: 12px; border-radius: 10px; font-size: 0.85rem; border-left: 5px solid #fcc419; display: none; color: #333; }
@@ -46,7 +41,7 @@
 <body>
     <div class="header-area"><h1 class="main-title">K高-英語チェック</h1></div>
     <div class="stats-bar">
-        <div>🔥 本日の挑戦: <span id="totalCount">0</span>回</div>
+        <div>🔥 今日の挑戦: <span id="totalCount">0</span>回</div>
         <div>🏆 累計合格数: <span id="passCount">0</span>個</div>
     </div>
     <div id="dateMenu" class="menu-container"></div>
@@ -56,7 +51,6 @@
         const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRAWmRJRNgjq3OtDdRPDvf3uXywGfHW6_saJSkox9Q0jHOUrg9RzjYCMcCeB8r5aesQUPJo1p1Lvbbm/pub?gid=0&single=true&output=csv';
         let allData = [];
         let recognition = null;
-
         const tips = { 'th':"上顎の前歯で舌の先を軽く挟んで！", 'l':"舌の先を上の前歯の裏に押し当てて！", 'r':"舌を浮かせ、口の奥にグイッと引いて！", 'v':"上の前歯を下唇の内側に当てて！", 'f':"上の前歯で下唇を軽く押さえて息を出して！", 's':"歯の隙間から鋭く息を吐いて！", 'sh':"口を突き出し「シーッ」と強く！", 'ae':"アとエの中間の音を狙って！", 'ou':"オから始めて最後は口をすぼめる！", 'ei':"エの後に軽くイを添えて！", 'w':"口を丸めて突き出してから広げる！", 'z':"喉を震わせてハチの羽音のように！", 'ch':"一気に「チッ」と弾けさせて！", 'dg':"喉を震わせて力強く「ヂッ」！", 'm':"唇を閉じて鼻に響かせて！", 'n':"舌先を歯茎に付けて鼻から抜く！", 'ng':"喉の入り口を塞いで鼻から抜く！", 't':"鋭く「トゥッ」と息を飛ばして！", 'd':"喉を震わせ「ドゥッ」と放て！", 'b':"唇を結んで爆発させるように！" };
 
         const stats = {
@@ -82,28 +76,47 @@
                 const now = new Date();
                 const currentHour = now.getHours();
                 const todayStr = `${now.getFullYear()}/${(now.getMonth()+1).toString().padStart(2,'0')}/${now.getDate().toString().padStart(2,'0')}`;
+                
                 allData = text.split(/\r?\n/).filter(line => line.includes(',')).map(r => r.split(','));
-                const filteredData = allData.slice(1).filter(r => {
-                    const rowDate = r[0].replace(/-/g, '/');
+                
+                const filteredRows = allData.slice(1).filter(r => {
+                    if(!r[0]) return false;
+                    const rowDate = r[0].trim().replace(/-/g, '/');
+                    // 18時制限のロジック
                     return (rowDate < todayStr) || (rowDate === todayStr && currentHour >= 18);
                 });
-                const dates = [...new Set(filteredData.map(r => r[0]))].filter(d => d).sort((a,b) => b.localeCompare(a));
+
+                const dates = [...new Set(filteredRows.map(r => r[0].trim()))].filter(d => d).sort((a,b) => b.localeCompare(a));
                 const menu = document.getElementById('dateMenu');
-                if (dates.length === 0) { document.getElementById('content').innerHTML = "<p style='text-align:center;'>18時公開まで待機だぜ！</p>"; return; }
+                
+                if (dates.length === 0) {
+                    document.getElementById('content').innerHTML = "<p style='text-align:center; padding:20px;'>本日の課題は18時に公開されます。<br>それまで過去問で特訓だ！</p>";
+                    return;
+                }
+
                 dates.forEach((d, i) => {
                     const btn = document.createElement('button');
                     btn.className = 'date-tab'; btn.innerText = d;
-                    btn.onclick = () => { document.querySelectorAll('.date-tab').forEach(t => t.classList.remove('active')); btn.classList.add('active'); render(d); };
+                    btn.onclick = () => {
+                        document.querySelectorAll('.date-tab').forEach(t => t.classList.remove('active'));
+                        btn.classList.add('active');
+                        render(d);
+                    };
                     menu.appendChild(btn);
-                    if(i===0) btn.click();
+                    if(i === 0) btn.click();
                 });
-            } catch (e) { console.error(e); }
+            } catch (e) {
+                console.error(e);
+            }
         }
 
         function render(date) {
             const container = document.getElementById('content');
             container.innerHTML = '';
-            allData.filter(r => r[0] === date).forEach((row, rowIndex) => {
+            // 日付文字列を柔軟に一致判定
+            const targetRows = allData.filter(r => r[0] && r[0].trim().replace(/-/g, '/') === date.replace(/-/g, '/'));
+            
+            targetRows.forEach((row, rowIndex) => {
                 const videoTitle = row[1] || "英会話レッスン";
                 const videoLink = row[11] || "#";
                 for (let j = 2; j <= 10; j += 2) {
@@ -113,7 +126,7 @@
                     const id = `${date}-${rowIndex}-${j}`;
                     const isCleared = stats.data.passedItems.includes(id);
                     container.innerHTML += `<div class="practice-card ${isCleared ? 'cleared' : ''}" id="card-${id}">
-                        <div class="card-header"><span class="video-title">📺 ${videoTitle}</span><a href="${videoLink}" target="_blank" class="yt-btn">ショート動画で見る</a></div>
+                        <div class="card-header"><span class="video-title">📺 ${videoTitle}</span><a href="${videoLink}" target="_blank" class="yt-btn">動画を見る</a></div>
                         <div class="phrase-item">
                             <span class="jp-text">${jp}</span>
                             <div class="word-tap-area" id="area-${id}">${en.split(' ').map(w => `<span class="word-chip" data-orig="${w}" onclick="play('${w.replace(/'/g,"")}')">${w}</span>`).join('')}</div>
@@ -187,13 +200,13 @@
             document.getElementById(`val-${id}`).innerText = score;
 
             const ad = document.getElementById(`ad-${id}`);
-            if (score >= 70) {
+            if (score >= 90) { // 合格ラインを90点に設定
                 stats.addPass(id);
                 document.getElementById(`card-${id}`).classList.add('cleared');
                 ad.innerHTML = "合格！";
                 if(score === 100) confetti();
             } else {
-                ad.innerHTML = `不合格だ。${firstMissedKey ? `<br><b>💡コツ:</b> ${tips[firstMissedKey]}` : "<br>もっとハッキリ発音してみよう！"}`;
+                ad.innerHTML = `不合格だ。${firstMissedKey ? `<br><b>💡コツ:</b> ${tips[firstMissedKey]}` : "<br>ハッキリ発音してみよう！"}`;
             }
             ad.style.display = "block";
             stats.save();
