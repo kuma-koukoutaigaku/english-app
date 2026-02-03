@@ -10,91 +10,98 @@
         
         :root {
             --primary: #FF9800; --secondary: #1a237e; --bg: #F0F4F8;
-            --score-100: #00C853; --score-70: #2196F3; --score-40: #FF9800; --score-0: #FF5252;
+            --score-100: #00C853; --score-70: #2196F3; --score-0: #FF5252;
             --yt-red: #FF0000;
         }
         body { font-family: 'Helvetica Neue', Arial, sans-serif; background: var(--bg); color: #333; margin: 0; padding: 15px; }
         
-        .header-area { text-align: center; margin-bottom: 20px; position: relative; }
+        /* ヘッダーデザイン */
+        .header-area { text-align: center; margin-bottom: 20px; }
         .main-title { 
             font-family: 'Noto Serif JP', serif; font-size: 1.6rem; color: var(--secondary); 
-            margin: 10px 0; letter-spacing: 0.05em;
+            margin: 10px 0; border-bottom: 2px solid var(--primary); display: inline-block; padding-bottom: 5px;
         }
-        .total-counter { 
-            position: absolute; top: -5px; right: 0; font-size: 0.75rem; color: #888; 
-            background: #fff; padding: 4px 10px; border-radius: 10px; border: 1px solid #ddd;
-        }
+        .stats-bar { background: #fff; padding: 8px; border-radius: 12px; font-size: 0.85rem; color: #555; display: flex; justify-content: center; gap: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .stats-bar b { color: var(--secondary); }
 
-        .menu-container { display: flex; gap: 10px; overflow-x: auto; padding: 10px 0; margin-bottom: 10px; }
-        .date-tab { 
-            background: #fff; border: 1px solid #ddd; padding: 8px 15px; border-radius: 20px; 
-            cursor: pointer; white-space: nowrap; font-weight: bold; color: #666; display: flex; flex-direction: column; align-items: center;
-        }
+        /* タブ */
+        .menu-container { display: flex; gap: 8px; overflow-x: auto; padding: 10px 0; }
+        .date-tab { background: #fff; border: 1px solid #ddd; padding: 10px 20px; border-radius: 25px; cursor: pointer; white-space: nowrap; font-weight: bold; color: #666; }
         .date-tab.active { background: var(--secondary); color: white; border-color: var(--secondary); }
-        .tab-count { font-size: 0.65rem; opacity: 0.8; }
 
         .practice-card { background: white; border-radius: 24px; padding: 20px; margin-bottom: 30px; box-shadow: 0 8px 20px rgba(0,0,0,0.06); }
         
-        /* YouTubeボタンのデザイン改善 */
-        .yt-button {
-            display: flex; align-items: center; justify-content: center; background: var(--yt-red); color: white; 
-            padding: 12px; border-radius: 16px; text-decoration: none; font-weight: bold; margin-bottom: 25px; 
-            box-shadow: 0 4px 0 #b30000; font-size: 0.95rem; line-height: 1.2;
+        /* YouTubeボタン - デザイン一新 */
+        .yt-card {
+            background: #000; border-radius: 16px; overflow: hidden; margin-bottom: 25px;
+            display: flex; flex-direction: column; text-decoration: none; border: 3px solid #eee;
         }
-        .yt-button svg { width: 30px; height: 30px; margin-right: 12px; flex-shrink: 0; fill: white; }
-        .yt-text { text-align: left; }
-        .yt-label { font-size: 0.7rem; opacity: 0.9; display: block; }
+        .yt-header { background: var(--yt-red); color: white; padding: 8px 15px; font-size: 0.8rem; font-weight: bold; display: flex; align-items: center; }
+        .yt-header svg { width: 18px; height: 18px; margin-right: 8px; fill: white; }
+        .yt-body { padding: 15px; background: #1a1a1a; color: white; }
+        .yt-title { font-size: 1.1rem; font-weight: bold; margin-bottom: 5px; display: block; color: #fff; }
+        .yt-footer { font-size: 0.75rem; color: #aaa; text-align: right; }
 
         .phrase-item { margin-bottom: 35px; position: relative; border-bottom: 2px #f0f0f0 solid; padding-bottom: 25px; }
-        .jp-text { color: #1a1a1a; font-size: 1.5rem; font-weight: 800; margin-bottom: 8px; display: block; }
-        .target-phrase { font-size: 1.1rem; margin-bottom: 15px; color: #777; display: block; }
+        .jp-text { color: #1a1a1a; font-size: 1.4rem; font-weight: 800; margin-bottom: 8px; display: block; }
+        .target-phrase { font-size: 1.1rem; margin-bottom: 12px; color: #777; font-style: italic; }
         
-        .feedback-container { background: #fdfdfd; padding: 10px; border-radius: 10px; margin-bottom: 15px; border: 1px dashed #ccc; }
-        .feedback-label { font-size: 0.75rem; color: #999; margin-bottom: 4px; display: block; }
-        .feedback-text { font-size: 1.1rem; color: #333; font-weight: bold; }
+        .voice-area { background: #f8f9fa; border: 2px solid #e9ecef; border-radius: 12px; padding: 12px; margin-bottom: 15px; }
+        .voice-label { font-size: 0.7rem; color: #999; text-transform: uppercase; font-weight: bold; margin-bottom: 5px; display: block; }
+        .voice-text { font-size: 1.1rem; color: var(--secondary); font-weight: bold; min-height: 1.2em; }
 
         button.speak-btn { 
             width: 100%; background: var(--primary); color: white; border: none; 
-            padding: 14px; border-radius: 30px; cursor: pointer; font-weight: bold; font-size: 1.1rem; 
-            box-shadow: 0 4px 0 #E68A00; transition: all 0.2s;
+            padding: 16px; border-radius: 35px; cursor: pointer; font-weight: bold; font-size: 1.1rem; 
+            box-shadow: 0 5px 0 #E68A00; transition: 0.1s;
         }
-        button.speak-btn.recording {
-            background: #e91e63; box-shadow: 0 0 15px rgba(233, 30, 99, 0.4);
-            animation: pulse 1.5s infinite;
-        }
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.02); } 100% { transform: scale(1); } }
+        button.speak-btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #E68A00; }
+        button.speak-btn.recording { background: #ff4081; box-shadow: 0 0 20px rgba(255,64,129,0.5); animation: pulse 1s infinite; }
+        
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
 
         .score-box { 
             position: absolute; top: -10px; right: 0; color: white; padding: 6px 15px; 
             border-radius: 20px; font-size: 1.1rem; font-weight: 900; display: none; transform: rotate(5deg);
         }
 
-        .advice-msg { margin-top: 15px; font-size: 0.9rem; color: #444; background: #E3F2FD; padding: 12px; border-radius: 12px; display: none; border-left: 5px solid #2196F3; line-height: 1.4; }
+        .advice-msg { margin-top: 15px; font-size: 0.9rem; color: #333; background: #fff3e0; padding: 15px; border-radius: 12px; display: none; border-left: 6px solid #ff9800; }
         
         .perfect { color: var(--score-100); font-weight: bold; }
-        .good { color: #FF9800; font-weight: bold; text-decoration: underline wavy; }
-        .miss { color: var(--score-0); text-decoration: underline; font-weight: bold; }
+        .good { color: var(--primary); text-decoration: underline wavy; font-weight: bold; }
+        .miss { color: var(--score-0); text-decoration: line-through; opacity: 0.6; }
     </style>
 </head>
 <body>
     <div class="header-area">
-        <div class="total-counter" id="totalCount">総チャレンジ数: 0</div>
         <h1 class="main-title">高校退学教師のK高等学校</h1>
+        <div class="stats-bar">
+            <span>本日の練習: <b id="dayCount">0</b> 回</span>
+            <span>累計チャレンジ: <b id="totalCount">0</b> 回</span>
+        </div>
     </div>
     
     <div id="dateMenu" class="menu-container"></div>
-    <div id="content">Loading...</div>
+    <div id="content">データを読み込み中...</div>
 
     <script>
         const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRAWmRJRNgjq3OtDdRPDvf3uXywGfHW6_saJSkox9Q0jHOUrg9RzjYCMcCeB8r5aesQUPJo1p1Lvbbm/pub?gid=0&single=true&output=csv';
         let allData = [];
-        let dailyCounts = JSON.parse(localStorage.getItem('daily_challenges') || '{}');
+        let dailyStats = JSON.parse(localStorage.getItem('k_high_stats') || '{}');
+        let currentOpenDate = "";
 
-        function updateCounters() {
-            let total = Object.values(dailyCounts).reduce((a, b) => a + b, 0);
-            document.getElementById('totalCount').innerText = `総チャレンジ数: ${total}`;
-            localStorage.setItem('daily_challenges', JSON.stringify(dailyCounts));
-            createMenu(); // タブの数字を更新
+        function saveStat(date) {
+            dailyStats[date] = (dailyStats[date] || 0) + 1;
+            localStorage.setItem('k_high_stats', JSON.stringify(dailyStats));
+            renderStats();
+        }
+
+        function renderStats() {
+            const total = Object.values(dailyStats).reduce((a, b) => a + b, 0);
+            document.getElementById('totalCount').innerText = total;
+            if(currentOpenDate) {
+                document.getElementById('dayCount').innerText = dailyStats[currentOpenDate] || 0;
+            }
         }
 
         async function loadData() {
@@ -108,27 +115,22 @@
 
         function createMenu() {
             const menu = document.getElementById('dateMenu');
-            const now = new Date();
-            const todayStr = now.getFullYear() + '/' + String(now.getMonth() + 1).padStart(2, '0') + '/' + String(now.getDate()).padStart(2, '0');
-            const dates = [...new Set(allData.slice(1).map(r => r[0]))].filter(d => d && d.trim() !== "" && d <= todayStr).sort();
-            
-            const currentActive = document.querySelector('.date-tab.active')?.dataset.date;
+            const dates = [...new Set(allData.slice(1).map(r => r[0]))].filter(d => d && d.trim() !== "").sort();
             menu.innerHTML = '';
-            
             dates.forEach(date => {
-                const count = dailyCounts[date] || 0;
                 const btn = document.createElement('button');
-                btn.className = 'date-tab' + (currentActive === date ? ' active' : '');
-                btn.dataset.date = date;
-                btn.innerHTML = `<span>${date}</span><span class="tab-count">${count} sessions</span>`;
+                btn.className = 'date-tab';
+                btn.innerText = date;
                 btn.onclick = () => {
                     document.querySelectorAll('.date-tab').forEach(t => t.classList.remove('active'));
-                    btn.classList.add('active'); 
+                    btn.classList.add('active');
+                    currentOpenDate = date;
+                    renderStats();
                     showByDate(date);
                 };
                 menu.appendChild(btn);
             });
-            if(!currentActive && menu.lastChild) menu.lastChild.click();
+            if(menu.lastChild) menu.lastChild.click();
         }
 
         function showByDate(targetDate) {
@@ -136,99 +138,108 @@
             container.innerHTML = '';
             const filteredRows = allData.filter(row => row[0] === targetDate);
             filteredRows.forEach((row, i) => {
-                const videoTitle = row[11] ? row[11].trim() : "英会話レッスン";
-                const youtubeUrl = row[12] ? row[12].trim() : null;
-                const ytBtn = youtubeUrl && youtubeUrl.startsWith('http') ? 
-                    `<a href="${youtubeUrl}" target="_blank" class="yt-button">
-                        <svg viewBox="0 0 24 24"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/></svg>
-                        <div class="yt-text"><span class="yt-label">このショート動画を見る</span>${videoTitle}</div>
-                    </a>` : '';
+                const videoTitle = row[11] || "英会話レッスン";
+                const youtubeUrl = row[12] || "#";
                 
                 let phrasesHtml = '';
                 for (let j = 2; j <= 10; j += 2) {
-                    const en = row[j] ? row[j].trim() : "";
-                    const jp = row[j+1] ? row[j+1].trim() : "";
-                    if (en.length < 2) continue;
+                    const en = row[j]?.trim();
+                    const jp = row[j+1]?.trim();
+                    if (!en || en.length < 2) continue;
                     const id = `phrase-${i}-${j}`;
                     phrasesHtml += `
                         <div class="phrase-item">
                             <div class="score-box" id="score-${id}"></div>
-                            <div class="jp-text">${jp}</div>
-                            <div class="target-phrase" id="display-${id}">${en}</div>
-                            <div class="feedback-container">
-                                <span class="feedback-label">あなたの声:</span>
-                                <div class="feedback-text" id="feedback-${id}">---</div>
+                            <span class="jp-text">${jp}</span>
+                            <span class="target-phrase" id="display-${id}">${en}</span>
+                            <div class="voice-area">
+                                <span class="voice-label">あなたの声</span>
+                                <div class="voice-text" id="feedback-${id}">...</div>
                             </div>
-                            <button class="speak-btn" id="btn-${id}" onclick="check('${en.replace(/'/g, "\\'")}', '${id}', '${targetDate}')">🎤 クリックして発音</button>
+                            <button class="speak-btn" id="btn-${id}" onclick="check('${en.replace(/'/g, "\\'")}', '${id}')">🎤 発音をチェックする</button>
                             <div class="advice-msg" id="advice-${id}"></div>
                         </div>`;
                 }
-                container.innerHTML += `<div class="practice-card">${ytBtn}${phrasesHtml}</div>`;
+                container.innerHTML += `
+                    <div class="practice-card">
+                        <a href="${youtubeUrl}" target="_blank" class="yt-card">
+                            <div class="yt-header"><svg viewBox="0 0 24 24"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/></svg> YouTube Shorts</div>
+                            <div class="yt-body">
+                                <span class="yt-title">${videoTitle}</span>
+                                <div class="yt-footer">この動画をお手本にする ＞</div>
+                            </div>
+                        </a>
+                        ${phrasesHtml}
+                    </div>`;
             });
         }
 
-        function check(target, id, date) {
+        function getPhoneticAdvice(word) {
+            const w = word.toLowerCase();
+            if(w.includes('th')) return "【th】の音：舌先を前歯で軽く噛んで、息を吹いてみて！";
+            if(w.includes('r')) return "【r】の音：舌を喉の奥に引いて、どこにも付けないのがコツ！";
+            if(w.includes('v') || w.includes('f')) return "【v/f】の音：上の前歯を下唇に軽く乗せて、振動させてみて！";
+            if(w.endsWith('s')) return "語尾の【s】が消えがち！最後まで息を吐ききって。";
+            if(w.includes('l')) return "【l】の音：舌先を前歯の裏にしっかり押し当てて弾いて！";
+            return "単語の「強弱」を意識して、歌うようにリズムをつけてみて！";
+        }
+
+        function check(target, id) {
             const btn = document.getElementById(`btn-${id}`);
-            const display = document.getElementById(`display-${id}`);
             const feedback = document.getElementById(`feedback-${id}`);
+            const display = document.getElementById(`display-${id}`);
             const scoreBox = document.getElementById(`score-${id}`);
             const advice = document.getElementById(`advice-${id}`);
             
             btn.classList.add('recording');
-            btn.innerText = "Listening...";
-
-            // カウントアップ処理
-            dailyCounts[date] = (dailyCounts[date] || 0) + 1;
-            updateCounters();
+            btn.innerText = "聴取中...";
+            saveStat(currentOpenDate);
 
             const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
             recognition.lang = 'en-US';
             
             recognition.onresult = (event) => {
                 btn.classList.remove('recording');
-                btn.innerText = "🎤 クリックして発音";
-                
-                const res = event.results[0][0];
-                const speech = res.transcript;
-                const confidence = res.confidence;
-                
-                feedback.innerText = speech; // あなたの声を表示
+                btn.innerText = "🎤 発音をチェックする";
+                const speech = event.results[0][0].transcript;
+                const conf = event.results[0][0].confidence;
+                feedback.innerText = speech;
 
-                const clean = (s) => s.toLowerCase().replace(/[.!?,]/g, "").trim();
                 const tWords = target.split(/\s+/);
-                const sWords = clean(speech).split(/\s+/);
+                const sWords = speech.toLowerCase().replace(/[.!?,]/g, "").split(/\s+/);
                 
-                let totalConfidence = 0;
+                let correctCount = 0;
+                let orangeWord = "";
                 let resultHtml = "";
-                let missedWord = "";
 
                 tWords.forEach(word => {
-                    const cleanW = clean(word);
-                    if (sWords.includes(cleanW)) {
-                        if (confidence < 0.88) {
+                    const cleanW = word.toLowerCase().replace(/[.!?,]/g, "");
+                    if(sWords.includes(cleanW)) {
+                        if(conf < 0.88) {
                             resultHtml += `<span class="good">${word}</span> `;
-                            if(!missedWord) missedWord = word;
+                            if(!orangeWord) orangeWord = word;
                         } else {
                             resultHtml += `<span class="perfect">${word}</span> `;
                         }
-                        totalConfidence++;
+                        correctCount++;
                     } else {
                         resultHtml += `<span class="miss">${word}</span> `;
-                        if (!missedWord) missedWord = word;
+                        if(!orangeWord) orangeWord = word;
                     }
                 });
                 display.innerHTML = resultHtml;
 
-                let score = Math.round((totalConfidence / tWords.length) * 100 * (0.6 + (confidence * 0.4)));
-                if(score > 100) score = 100;
+                let score = Math.round((correctCount / tWords.length) * 100 * (0.7 + (conf * 0.3)));
                 scoreBox.innerText = `${score}点`;
                 scoreBox.style.display = "block";
-                
-                if (score >= 90) { scoreBox.style.background = "var(--score-100)"; advice.style.display = "none"; confetti(); }
-                else {
-                    scoreBox.style.background = (score >= 70) ? "var(--score-70)" : (score >= 40 ? "var(--score-40)" : "var(--score-0)");
-                    advice.innerHTML = confidence < 0.8 ? `💡 <b>判定：声が聞き取りにくいです。</b><br>ハキハキと、少し大きめの声で話してみて！` : `💡 <b>"${missedWord}" をチェック：</b><br>発音がカタカナに近いかもしれません。`;
+                scoreBox.style.background = score >= 90 ? "var(--score-100)" : (score >= 70 ? "var(--primary)" : "var(--score-0)");
+
+                if(score >= 90) {
+                    advice.style.display = "none";
+                    confetti();
+                } else {
                     advice.style.display = "block";
+                    advice.innerHTML = `<b>アドバイス:</b><br>${getPhoneticAdvice(orangeWord || tWords[0])}`;
                 }
             };
             recognition.onerror = () => { btn.classList.remove('recording'); btn.innerText = "🎤 もう一度試す"; };
