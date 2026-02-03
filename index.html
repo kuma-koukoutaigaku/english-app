@@ -74,13 +74,25 @@
         };
 
         const stats = {
-            data: JSON.parse(localStorage.getItem('kHighStats')) || { total: 0, pass: 0, lastDate: "" },
+            // passedItemsに合格済みの問題IDを保存する
+            data: JSON.parse(localStorage.getItem('kHighStats')) || { total: 0, pass: 0, lastDate: "", passedItems: [] },
             save() {
                 const today = new Date().toLocaleDateString();
-                if (this.data.lastDate !== today) { this.data.total = 0; this.data.lastDate = today; }
+                if (this.data.lastDate !== today) { 
+                    this.data.total = 0; 
+                    this.data.lastDate = today; 
+                }
                 localStorage.setItem('kHighStats', JSON.stringify(this.data));
                 document.getElementById('totalCount').innerText = this.data.total;
                 document.getElementById('passCount').innerText = this.data.pass;
+            },
+            addPass(id) {
+                if (!this.data.passedItems.includes(id)) {
+                    this.data.passedItems.push(id);
+                    this.data.pass++;
+                    return true; // 新規合格
+                }
+                return false; // すでに合格済み
             }
         };
 
@@ -95,11 +107,10 @@
 
                 allData = text.split(/\r?\n/).filter(line => line.includes(',')).map(r => r.split(','));
                 
-                // 18時以降のみ解禁するフィルタリング
                 const filteredData = allData.slice(1).filter(r => {
-                    const rowDate = r[0].replace(/-/g, '/'); // スプレッドシートの日付形式に対応
-                    if (rowDate > todayStr) return false; // 未来は出さない
-                    if (rowDate === todayStr && currentHour < 18) return false; // 今日だけど18時前なら出さない
+                    const rowDate = r[0].replace(/-/g, '/');
+                    if (rowDate > todayStr) return false;
+                    if (rowDate === todayStr && currentHour < 18) return false;
                     return true;
                 });
 
@@ -133,7 +144,8 @@
                     const en = row[j]?.trim();
                     const jp = row[j+1]?.trim();
                     if (!en || en.length < 2) continue;
-                    const id = `item-${rowIndex}-${j}`;
+                    // 問題を特定するユニークなIDを作成 (日付 + 行番号 + 列番号)
+                    const id = `${date}-${rowIndex}-${j}`;
                     items += `
                         <div class="phrase-item">
                             <span class="jp-text">${jp}</span>
@@ -211,7 +223,12 @@
 
             const score = Math.round((correctCount / tWords.length) * 100);
             stats.data.total++;
-            if (score >= 70) { stats.data.pass++; if(score === 100) confetti(); }
+            
+            // 70点以上かつ、初めて合格した問題の場合のみ累計に加算
+            if (score >= 70) {
+                stats.addPass(id); 
+                if(score === 100) confetti();
+            }
             stats.save();
 
             document.getElementById(`sc-${id}`).innerHTML = `<span class="score-val" style="color:${score>=70?'#00C853':'#FF9800'}">${score}点</span>`;
