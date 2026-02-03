@@ -3,9 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>高校退学教師のK高等学校 🎓</title>
+    <title>高校退学教師のK高等学校</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@700&display=swap');
+        
         :root {
             --primary: #FF9800; --secondary: #1a237e; --bg: #F0F4F8;
             --score-100: #00C853; --score-70: #2196F3; --score-40: #FF9800; --score-0: #FF5252;
@@ -13,11 +15,18 @@
         }
         body { font-family: 'Helvetica Neue', Arial, sans-serif; background: var(--bg); color: #333; margin: 0; padding: 15px; }
         
-        /* ヘッダーとカウンター */
-        .header-area { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .view-count { font-size: 0.75rem; color: #777; background: #fff; padding: 4px 10px; border-radius: 10px; border: 1px solid #ddd; }
+        /* タイトルをおしゃれに中央寄せ */
+        .header-area { text-align: center; margin-bottom: 20px; position: relative; }
+        .main-title { 
+            font-family: 'Noto Serif JP', serif; font-size: 1.6rem; color: var(--secondary); 
+            margin: 10px 0; letter-spacing: 0.05em;
+        }
+        .challenge-count { 
+            position: absolute; top: -5px; right: 0; font-size: 0.7rem; color: #888; 
+            background: #fff; padding: 3px 8px; border-radius: 8px; border: 1px solid #eee;
+        }
 
-        .menu-container { display: flex; gap: 10px; overflow-x: auto; padding: 10px 0; }
+        .menu-container { display: flex; gap: 10px; overflow-x: auto; padding: 10px 0; margin-bottom: 10px; }
         .date-tab { background: #fff; border: 1px solid #ddd; padding: 8px 18px; border-radius: 20px; cursor: pointer; white-space: nowrap; font-weight: bold; color: #666; }
         .date-tab.active { background: var(--secondary); color: white; }
 
@@ -25,22 +34,28 @@
         
         .yt-button {
             display: flex; align-items: center; justify-content: center; background: var(--yt-red); color: white; 
-            padding: 14px; border-radius: 16px; text-decoration: none; 
-            font-weight: bold; margin-bottom: 25px; font-size: 1.1rem; box-shadow: 0 4px 0 #b30000;
+            padding: 14px; border-radius: 16px; text-decoration: none; font-weight: bold; margin-bottom: 25px; box-shadow: 0 4px 0 #b30000;
         }
-        .yt-button svg { width: 28px; height: 28px; margin-right: 10px; fill: white; }
+        .yt-button svg { width: 24px; height: 24px; margin-right: 8px; fill: white; }
 
         .phrase-item { margin-bottom: 35px; position: relative; border-bottom: 2px #f0f0f0 solid; padding-bottom: 25px; }
-        
         .jp-text { color: #1a1a1a; font-size: 1.5rem; font-weight: 800; margin-bottom: 8px; display: block; }
-        .target-phrase { font-size: 1.2rem; margin-bottom: 15px; color: #666; display: block; }
+        .target-phrase { font-size: 1.1rem; margin-bottom: 15px; color: #777; display: block; }
         
-        .feedback-container { background: #f8f9fa; padding: 12px; border-radius: 12px; margin-bottom: 15px; border-left: 4px solid #ddd; }
-        .feedback-text { font-size: 1rem; color: #666; }
-        
+        /* 録音中ボタンのアニメーション */
         button.speak-btn { 
             width: 100%; background: var(--primary); color: white; border: none; 
-            padding: 12px; border-radius: 30px; cursor: pointer; font-weight: bold; font-size: 1.1rem; box-shadow: 0 4px 0 #E68A00;
+            padding: 14px; border-radius: 30px; cursor: pointer; font-weight: bold; font-size: 1.1rem; 
+            box-shadow: 0 4px 0 #E68A00; transition: all 0.2s; position: relative; overflow: hidden;
+        }
+        button.speak-btn.recording {
+            background: #e91e63; box-shadow: 0 0 15px rgba(233, 30, 99, 0.4);
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
         }
 
         .score-box { 
@@ -48,18 +63,17 @@
             border-radius: 20px; font-size: 1.1rem; font-weight: 900; display: none; transform: rotate(5deg);
         }
 
-        .advice-msg { margin-top: 15px; font-size: 0.95rem; color: #444; background: #E3F2FD; padding: 12px; border-radius: 12px; display: none; border-left: 5px solid #2196F3; }
+        .advice-msg { margin-top: 15px; font-size: 0.9rem; color: #444; background: #E3F2FD; padding: 12px; border-radius: 12px; display: none; border-left: 5px solid #2196F3; line-height: 1.4; }
         
-        /* 単語ごとの状態色 */
-        .perfect { color: var(--score-100); font-weight: bold; } /* 完璧 */
-        .good { color: #FF9800; font-weight: bold; text-decoration: underline wavy; } /* 通じたけど発音が甘い */
-        .miss { color: var(--score-0); text-decoration: underline; font-weight: bold; } /* 聞き取れなかった */
+        .perfect { color: var(--score-100); font-weight: bold; }
+        .good { color: #FF9800; font-weight: bold; text-decoration: underline wavy; }
+        .miss { color: var(--score-0); text-decoration: underline; font-weight: bold; }
     </style>
 </head>
 <body>
     <div class="header-area">
-        <h3 style="margin:0; color: var(--secondary);">高校退学教師のK高等学校 🎓</h3>
-        <div class="view-count" id="visitorCount">Views: 1</div>
+        <div class="challenge-count" id="challengeCount">総チャレンジ数: 0</div>
+        <h1 class="main-title">高校退学教師のK高等学校</h1>
     </div>
     
     <div id="dateMenu" class="menu-container"></div>
@@ -69,11 +83,9 @@
         const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRAWmRJRNgjq3OtDdRPDvf3uXywGfHW6_saJSkox9Q0jHOUrg9RzjYCMcCeB8r5aesQUPJo1p1Lvbbm/pub?gid=0&single=true&output=csv';
         let allData = [];
 
-        // 簡易アクセスカウンター（ローカル保存）
-        let views = localStorage.getItem('page_views') || 0;
-        views++;
-        localStorage.setItem('page_views', views);
-        document.getElementById('visitorCount').innerText = `Total Views: ${views}`;
+        // チャレンジ数の管理
+        let challenges = localStorage.getItem('total_challenges') || 0;
+        document.getElementById('challengeCount').innerText = `総チャレンジ数: ${challenges}`;
 
         async function loadData() {
             try {
@@ -115,7 +127,7 @@
                     const jp = row[j+1] ? row[j+1].trim() : "";
                     if (en.length < 2) continue;
                     const id = `phrase-${i}-${j}`;
-                    phrasesHtml += `<div class="phrase-item"><div class="score-box" id="score-${id}"></div><div class="jp-text">${jp}</div><div class="target-phrase" id="display-${id}">${en}</div><div class="feedback-container"><div class="feedback-text" id="feedback-${id}">あなたの声: ---</div></div><button class="speak-btn" onclick="check('${en.replace(/'/g, "\\'")}', '${id}')">🎤 発音チェック</button><div class="advice-msg" id="advice-${id}"></div></div>`;
+                    phrasesHtml += `<div class="phrase-item"><div class="score-box" id="score-${id}"></div><div class="jp-text">${jp}</div><div class="target-phrase" id="display-${id}">${en}</div><button class="speak-btn" id="btn-${id}" onclick="check('${en.replace(/'/g, "\\'")}', '${id}')">🎤 クリックして発音</button><div class="advice-msg" id="advice-${id}"></div></div>`;
                 }
                 container.innerHTML += `<div class="practice-card">${ytBtn}${phrasesHtml}</div>`;
             });
@@ -124,27 +136,40 @@
         function getDetailedAdvice(word) {
             const w = word.toLowerCase();
             const rules = [
-                { k: 'th', m: '【Th音】舌先を上の前歯で軽く噛んでみて。サ行にならないように！' },
-                { k: 'r', m: '【R音】舌を喉の奥に引いて！「ゥ」の口から始めるとそれっぽくなるよ。' },
-                { k: 'l', m: '【L音】舌先を前歯の付け根に押し当てて、パッと離して！' },
-                { k: 'f', m: '【F音】上の前歯を下唇に軽く添えて、息を吹き出して。' },
-                { k: 'v', m: '【V音】Fの形で、喉を震わせて「ヴー」と音を出そう。' },
-                { k: 'sh', m: '【Sh音】アヒル口で「シィー！」と鋭く息を出して。' },
-                { k: 'ae', m: '【æ音】口を横に大きく開けて「ア」と「エ」を同時に言う感じ。' }
+                { k: 'th', m: '【Th】舌を軽く噛んで息を出す！「サ」ではなく「ス」に近い空気の音です。' },
+                { k: 'r', m: '【R】舌を喉の奥にグッと引いて！舌の先がどこにも触れないのがポイント。' },
+                { k: 'l', m: '【L】舌先を前歯の付け根にしっかり押し当ててから弾いて！' },
+                { k: 'f', m: '【F】前歯で下唇を軽く押さえて、隙間から「スー」と息を漏らして。' },
+                { k: 'v', m: '【V】Fの口のまま、喉を震わせて「ブー」と音を出してみて。' },
+                { k: 'sh', m: '【Sh】アヒル口で「静かに！」のポーズ。鋭い息の音を意識して。' },
+                { k: 'ae', m: '【æ】口を左右に思い切り引いて「ア」と言ってみて。' }
             ];
             for(let r of rules) { if(w.includes(r.k)) return r.m; }
-            return "アクセントを強めに、一単語ずつはっきり言ってみよう！";
+            return "単語のアクセント（強く読む部分）をもっと意識すると良くなります！";
         }
 
         function check(target, id) {
+            const btn = document.getElementById(`btn-${id}`);
             const display = document.getElementById(`display-${id}`);
-            const feedback = document.getElementById(`feedback-${id}`);
             const scoreBox = document.getElementById(`score-${id}`);
             const advice = document.getElementById(`advice-${id}`);
             
+            // UIのフィードバック：録音中状態にする
+            btn.classList.add('recording');
+            btn.innerText = "Listening...";
+
+            // チャレンジ数カウントアップ
+            challenges++;
+            localStorage.setItem('total_challenges', challenges);
+            document.getElementById('challengeCount').innerText = `総チャレンジ数: ${challenges}`;
+
             const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
             recognition.lang = 'en-US';
+            
             recognition.onresult = (event) => {
+                btn.classList.remove('recording');
+                btn.innerText = "🎤 クリックして発音";
+                
                 const res = event.results[0][0];
                 const speech = res.transcript;
                 const confidence = res.confidence;
@@ -153,8 +178,6 @@
                 const tWords = target.split(/\s+/);
                 const sWords = clean(speech).split(/\s+/);
                 
-                feedback.innerHTML = `あなたの声: "<b>${speech}</b>"`;
-                
                 let totalConfidence = 0;
                 let resultHtml = "";
                 let missedWord = "";
@@ -162,8 +185,7 @@
                 tWords.forEach(word => {
                     const cleanW = clean(word);
                     if (sWords.includes(cleanW)) {
-                        // 認識されたけど自信度が低い(0.85未満)場合は「good（オレンジ）」にする
-                        if (confidence < 0.85) {
+                        if (confidence < 0.88) { // 判定を少し厳しめに維持
                             resultHtml += `<span class="good">${word}</span> `;
                             if(!missedWord) missedWord = word;
                         } else {
@@ -183,19 +205,30 @@
                 scoreBox.innerText = `${score}点`;
                 scoreBox.style.display = "block";
                 
-                if (score >= 90) { scoreBox.style.background = "var(--score-100)"; advice.style.display = "none"; confetti(); }
-                else if (score >= 70) { 
-                    scoreBox.style.background = "var(--score-70)"; 
-                    advice.innerHTML = `💡 <b>惜しい！</b><br>波線の単語は通じましたが、もっとはっきり発音するとスコアが上がります。`;
+                if (score >= 90) { 
+                    scoreBox.style.background = "var(--score-100)"; 
+                    advice.style.display = "none"; confetti(); 
+                } else {
+                    scoreBox.style.background = (score >= 70) ? "var(--score-70)" : (score >= 40 ? "var(--score-40)" : "var(--score-0)");
+                    
+                    // 具体的なフィードバックの生成
+                    let msg = "";
+                    if (confidence < 0.8) {
+                        msg = `💡 <b>判定：声が聞き取りにくいです。</b><br>周りがうるさいか、声が小さすぎるかもしれません。もっとハキハキと、お腹から声を出してみて！`;
+                    } else if (missedWord) {
+                        msg = `💡 <b>"${missedWord}" の発音矯正：</b><br>${getDetailedAdvice(missedWord)}`;
+                    }
+                    advice.innerHTML = msg;
                     advice.style.display = "block";
-                }
-                else { 
-                    scoreBox.style.background = (score >= 40) ? "var(--score-40)" : "var(--score-0)";
-                    advice.innerHTML = `💡 <b>"${missedWord}" のコツ:</b><br>${getDetailedAdvice(missedWord)}`;
-                    advice.style.display = "block";
-                    if(window.navigator.vibrate) window.navigator.vibrate(50); // 低スコアでブルッとさせる
+                    if(window.navigator.vibrate) window.navigator.vibrate(score < 50 ? 100 : 30);
                 }
             };
+
+            recognition.onerror = () => {
+                btn.classList.remove('recording');
+                btn.innerText = "🎤 もう一度試す";
+            };
+
             recognition.start();
         }
         loadData();
