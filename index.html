@@ -5,44 +5,53 @@
     <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-CLFZXXHWZQ');</script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>K高-英語チェック</title>
+    <title>K高-英語道場</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@700&display=swap');
         :root { --primary: #FF9800; --secondary: #1a237e; --bg: #F0F4F8; --perfect: #00C853; --miss: #ff4757; --cleared: #e3f2fd; }
         body { font-family: sans-serif; background: var(--bg); margin: 0; padding: 15px; padding-bottom: 50px; }
         .header-area { text-align: center; }
-        .main-title { font-family: 'Noto Serif JP', serif; font-size: 1.5rem; color: var(--secondary); border-bottom: 3px solid var(--primary); display: inline-block; }
-        .stats-bar { background: #fff; border-radius: 12px; padding: 10px; margin: 15px 0; display: flex; justify-content: space-around; font-weight: bold; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-        .menu-container { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 10px; }
-        .date-tab { background: #fff; border: 1px solid #ddd; padding: 10px 18px; border-radius: 20px; cursor: pointer; white-space: nowrap; }
-        .date-tab.active { background: var(--secondary); color: white; }
-        .practice-card { background: white; border-radius: 24px; padding: 20px; margin-bottom: 25px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); transition: background 0.3s; border: 2px solid transparent; }
+        .main-title { font-family: 'Noto Serif JP', serif; font-size: 1.5rem; color: var(--secondary); border-bottom: 3px solid var(--primary); display: inline-block; margin-bottom: 10px; }
+        .stats-bar { background: #fff; border-radius: 12px; padding: 10px; margin: 15px 0; display: flex; justify-content: space-around; font-weight: bold; box-shadow: 0 2px 8px rgba(0,0,0,0.05); font-size: 0.9rem; }
+        .menu-container { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 10px; }
+        .date-tab { background: #fff; border: 1px solid #ddd; padding: 8px 15px; border-radius: 20px; cursor: pointer; white-space: nowrap; font-size: 0.85rem; }
+        .date-tab.active { background: var(--secondary); color: white; border-color: var(--secondary); }
+        
+        .practice-card { background: white; border-radius: 20px; padding: 18px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 2px solid transparent; }
         .practice-card.cleared { background: var(--cleared); border-color: #bbdefb; }
-        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
-        .video-title { font-weight: bold; color: #555; font-size: 0.85rem; max-width: 60%; }
-        .yt-btn { background: #ff0000; color: white; text-decoration: none; padding: 6px 10px; border-radius: 15px; font-size: 0.75rem; font-weight: bold; flex-shrink: 0; }
-        .jp-text { font-size: 1.1rem; font-weight: 800; margin-bottom: 8px; display: block; color: #333; }
-        .word-tap-area { font-size: 1.3rem; margin-bottom: 15px; min-height: 1.4em; line-height: 1.5; }
-        .word-chip { cursor: pointer; padding: 2px 4px; display: inline-block; border-bottom: 1px dashed #ccc; margin-right: 5px; color: #333; }
-        .word-chip.perfect { color: var(--perfect); font-weight: bold; border-bottom: none; }
-        .word-chip.miss b { color: var(--miss); text-decoration: underline; font-weight: 900; }
-        .voice-section { background: #2d3436; border-radius: 15px; padding: 15px; color: #fff; position: relative; display: flex; align-items: center; justify-content: space-between; }
-        .voice-info { flex-grow: 1; padding-right: 10px; }
-        .voice-label { font-size: 0.7rem; color: #aaa; display: block; margin-bottom: 5px; }
-        .voice-text { font-size: 1.1rem; color: #55efc4; font-weight: bold; min-height: 1.2em; }
-        .score-display { text-align: center; border-left: 1px solid #444; padding-left: 15px; min-width: 60px; }
-        .score-val { font-size: 1.4rem; font-weight: 900; display: block; }
-        .speak-btn { width: 100%; background: var(--primary); color: white; border: none; padding: 15px; border-radius: 30px; cursor: pointer; font-weight: bold; font-size: 1.1rem; margin-top: 10px; box-shadow: 0 4px 0 #E68A00; }
+        
+        .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+        .video-title { font-weight: bold; color: #444; font-size: 0.85rem; line-height: 1.3; }
+        .yt-btn { background: #ff0000; color: white; text-decoration: none; padding: 5px 10px; border-radius: 12px; font-size: 0.7rem; font-weight: bold; flex-shrink: 0; margin-left: 10px; }
+
+        .jp-text { font-size: 1.1rem; font-weight: 800; margin-bottom: 10px; color: #222; display: block; }
+        .word-tap-area { font-size: 1.4rem; margin-bottom: 15px; min-height: 1.5em; line-height: 1.4; color: #444; }
+        .word-chip { display: inline-block; margin-right: 6px; border-bottom: 2px solid #eee; cursor: pointer; }
+        .word-chip.perfect { color: var(--perfect); border-bottom: none; font-weight: bold; }
+        .word-chip.miss { color: var(--miss); border-bottom: 2px solid var(--miss); }
+
+        .voice-section { background: #2d3436; border-radius: 15px; padding: 12px; color: #fff; display: flex; align-items: center; justify-content: space-between; margin-top: 10px; }
+        .voice-info { flex-grow: 1; overflow: hidden; }
+        .voice-label { font-size: 0.65rem; color: #aaa; display: block; margin-bottom: 3px; }
+        .voice-text { font-size: 1rem; color: #55efc4; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .score-box { text-align: center; border-left: 1px solid #555; padding-left: 12px; min-width: 55px; }
+        .score-num { font-size: 1.4rem; font-weight: 900; display: block; line-height: 1; }
+        .score-sub { font-size: 0.6rem; color: #aaa; }
+
+        .speak-btn { width: 100%; background: var(--primary); color: white; border: none; padding: 14px; border-radius: 25px; cursor: pointer; font-weight: bold; font-size: 1.1rem; margin-top: 12px; box-shadow: 0 4px 0 #E68A00; outline: none; }
+        .speak-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #E68A00; }
         .speak-btn.recording { background: #d63031 !important; box-shadow: 0 4px 0 #9b2222 !important; }
-        .advice-box { margin-top: 10px; background: #fff9db; padding: 12px; border-radius: 10px; font-size: 0.85rem; border-left: 5px solid #fcc419; display: none; color: #333; line-height: 1.4; }
+
+        .advice-box { margin-top: 12px; background: #fff9db; padding: 12px; border-radius: 10px; font-size: 0.85rem; border-left: 5px solid #fcc419; display: none; color: #444; line-height: 1.5; }
+        .advice-box b { color: #d63031; }
     </style>
 </head>
 <body>
     <div class="header-area"><h1 class="main-title">K高等学校-英語道場</h1></div>
     <div class="stats-bar">
-        <div>🔥 今日の挑戦: <span id="totalCount">0</span>回</div>
-        <div>🏆 90点超え合格: <span id="passCount">0</span>個</div>
+        <div>🔥 本日の挑戦: <span id="totalCount">0</span>回</div>
+        <div>🏆 90点超合格: <span id="passCount">0</span>個</div>
     </div>
     <div id="dateMenu" class="menu-container"></div>
     <div id="content"></div>
@@ -52,7 +61,7 @@
         let allData = [];
         let recognition = null;
 
-        const tips = { 'th':"上顎の前歯で舌の先を軽く挟んで！", 'l':"舌の先を上の前歯の裏に押し当てて！", 'r':"舌を浮かせ、口の奥にグイッと引いて！", 'v':"上の前歯を下唇の内側に当てて！", 'f':"上の前歯で下唇を軽く押さえて息を出して！", 's':"歯の隙間から鋭く息を吐いて！", 'sh':"口を突き出し「シーッ」と強く！", 'ae':"アとエの中間の音を狙って！", 'ou':"オから始めて最後は口をすぼめる！", 'ei':"エの後に軽くイを添えて！", 'w':"口を丸めて突き出してから広げる！", 'z':"喉を震わせてハチの羽音のように！", 'ch':"一気に「チッ」と弾けさせて！", 'dg':"喉を震わせて力強く「ヂッ」！", 'm':"唇を閉じて鼻に響かせて！", 'n':"舌先を歯茎に付けて鼻から抜く！", 'ng':"喉の入り口を塞いで鼻から抜く！", 't':"鋭く「トゥッ」と息を飛ばして！", 'd':"喉を震わせ「ドゥッ」と放て！", 'b':"唇を結んで爆発させるように！" };
+        const tips = { 'th':"舌の先を前歯で軽く挟んで吹いて！", 'l':"舌先を上の前歯の付け根に押し当てて！", 'r':"舌をどこにも付けず奥に引っ込めて！", 'v':"上の前歯を下唇に軽く当てて震わせて！", 'f':"上の前歯で下唇を軽く押さえて息を出して！", 's':"前歯を閉じて隙間から「スー」と出して！", 'sh':"口を丸く突き出して「シュー」！", 'ae':"「ア」の口の形で「エ」と言ってみて！", 'ou':"「オ」から「ウ」へ滑らかに繋げて！", 'ei':"「エ」から「イ」へ音をスライドさせて！", 'w':"唇を思い切りすぼめてから広げて！", 'z':"「ズー」と喉を震わせるのがコツ！", 'ch':"「チッ」と短く息を弾けさせて！", 'dg':"喉を鳴らしながら「ヂッ」と強く！", 'm':"唇をしっかり閉じて鼻から音を出して！", 'n':"舌先を上に付けて鼻から抜く感じ！", 'ng':"鼻の奥を塞ぐように「ングッ」！", 't':"舌先を弾いて「トゥッ」と息を飛ばして！", 'd':"「ドゥッ」と短く喉を震わせて！", 'b':"唇をパッと離して破裂させて！" };
 
         const stats = {
             data: JSON.parse(localStorage.getItem('kHighStats')) || { total: 0, pass: 0, lastDate: "", passedItems: [] },
@@ -75,16 +84,18 @@
                 const res = await fetch(csvUrl);
                 const text = await res.text();
                 const now = new Date();
-                const currentHour = now.getHours();
                 const todayStr = `${now.getFullYear()}/${(now.getMonth()+1).toString().padStart(2,'0')}/${now.getDate().toString().padStart(2,'0')}`;
+                
                 allData = text.split(/\r?\n/).filter(line => line.includes(',')).map(r => r.split(','));
                 const filteredData = allData.slice(1).filter(r => {
                     const rowDate = r[0].replace(/-/g, '/');
-                    return (rowDate < todayStr) || (rowDate === todayStr && currentHour >= 18);
+                    return (rowDate <= todayStr); // 18時制限は一旦外して確実に表示優先
                 });
+
                 const dates = [...new Set(filteredData.map(r => r[0]))].filter(d => d).sort((a,b) => b.localeCompare(a));
                 const menu = document.getElementById('dateMenu');
-                if (dates.length === 0) { document.getElementById('content').innerHTML = "<p style='text-align:center;'>18時解禁まで待機だぜ！</p>"; return; }
+                if (dates.length === 0) { document.getElementById('content').innerHTML = "<p style='text-align:center;'>データ読み込み中...</p>"; return; }
+                
                 dates.forEach((d, i) => {
                     const btn = document.createElement('button');
                     btn.className = 'date-tab'; btn.innerText = d;
@@ -92,33 +103,48 @@
                     menu.appendChild(btn);
                     if(i===0) btn.click();
                 });
-            } catch (e) { console.error(e); }
+            } catch (e) { console.error("Load Error:", e); }
         }
 
         function render(date) {
             const container = document.getElementById('content');
             container.innerHTML = '';
             allData.filter(r => r[0] === date).forEach((row, rowIndex) => {
-                const videoTitle = row[1] || "レッスン";
+                const videoTitle = row[1] || "英会話";
                 const videoLink = row[11] || "#";
                 for (let j = 2; j <= 10; j += 2) {
                     const en = row[j]?.trim();
                     const jp = row[j+1]?.trim();
                     if (!en || en.length < 2) continue;
-                    const id = `${date}-${rowIndex}-${j}`;
+                    const id = `item-${date}-${rowIndex}-${j}`.replace(/\//g, '-');
                     const isCleared = stats.data.passedItems.includes(id);
-                    container.innerHTML += `<div class="practice-card ${isCleared ? 'cleared' : ''}" id="card-${id}">
-                        <div class="card-header"><span class="video-title">📺 ${videoTitle}</span><a href="${videoLink}" target="_blank" class="yt-btn">ショート動画で見る</a></div>
-                        <div class="phrase-item">
-                            <span class="jp-text">${jp}</span>
-                            <div class="word-tap-area" id="area-${id}">${en.split(' ').map(w => `<span class="word-chip" data-orig="${w}" onclick="play('${w.replace(/'/g,"")}')">${w}</span>`).join('')}</div>
-                            <div class="voice-section">
-                                <div class="voice-info"><span class="voice-label">キミの英語（リアルタイム）</span><div class="voice-text" id="fb-${id}">...</div></div>
-                                <div class="score-display"><span style="font-size:0.6rem;color:#aaa">SCORE</span><span class="score-val" id="val-${id}">--</span></div>
-                            </div>
-                            <button class="speak-btn" id="btn-${id}" onclick="startCheck('${en.replace(/'/g,"\\'")}', '${id}')">🎤 判定スタート</button>
-                            <div class="advice-box" id="ad-${id}"></div>
-                        </div></div>`;
+                    
+                    const card = document.createElement('div');
+                    card.className = `practice-card ${isCleared ? 'cleared' : ''}`;
+                    card.id = `card-${id}`;
+                    card.innerHTML = `
+                        <div class="card-header"><span class="video-title">📺 ${videoTitle}</span><a href="${videoLink}" target="_blank" class="yt-btn">動画</a></div>
+                        <span class="jp-text">${jp}</span>
+                        <div class="word-tap-area" id="area-${id}"></div>
+                        <div class="voice-section">
+                            <div class="voice-info"><span class="voice-label">キミの英語</span><div class="voice-text" id="fb-${id}">---</div></div>
+                            <div class="score-box"><span class="score-sub">SCORE</span><span class="score-num" id="val-${id}">--</span></div>
+                        </div>
+                        <button class="speak-btn" id="btn-${id}">🎤 判定スタート</button>
+                        <div class="advice-box" id="ad-${id}"></div>
+                    `;
+                    container.appendChild(card);
+                    
+                    const area = document.getElementById(`area-${id}`);
+                    en.split(' ').forEach(w => {
+                        const span = document.createElement('span');
+                        span.className = 'word-chip';
+                        span.innerText = w;
+                        span.onclick = () => play(w.replace(/[.!?,]/g, ""));
+                        area.appendChild(span);
+                    });
+
+                    document.getElementById(`btn-${id}`).onclick = () => startCheck(en, id);
                 }
             });
         }
@@ -135,6 +161,7 @@
             fb.innerText = "聞き取り中...";
             btn.classList.add('recording');
             btn.innerText = "停止して判定";
+            
             recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
             recognition.lang = 'en-US';
             recognition.interimResults = true;
@@ -150,47 +177,36 @@
         function judge(target, result, id) {
             const tWords = target.toLowerCase().replace(/[.!?,]/g, "").split(' ');
             const rWords = result.toLowerCase().replace(/[.!?,]/g, "").split(' ');
-            const chips = document.getElementById(`area-${id}`).querySelectorAll('.word-chip');
-            const targetKeys = Object.keys(tips).sort((a,b) => b.length - a.length);
-            let correctCount = 0;
-            let firstMissedKey = null;
+            const chips = document.getElementById(`area-${id}`).children;
+            let correct = 0;
+            let firstMissKey = null;
 
             tWords.forEach((tw, i) => {
-                const chip = chips[i];
-                if (!chip) return;
-                const originalText = chip.getAttribute('data-orig');
                 if (rWords.includes(tw)) {
-                    chip.className = 'word-chip perfect';
-                    chip.innerText = originalText;
-                    correctCount++;
+                    chips[i].className = 'word-chip perfect';
+                    correct++;
                 } else {
-                    chip.className = 'word-chip miss';
-                    let highlighted = originalText;
-                    for(let k of targetKeys) {
-                        if(tw.includes(k)) {
-                            highlighted = originalText.replace(new RegExp(`(${k})`, 'gi'), `<b>$1</b>`);
-                            if(!firstMissedKey) firstMissedKey = k;
-                            break; 
-                        }
+                    chips[i].className = 'word-chip miss';
+                    if (!firstMissKey) {
+                        for (let k in tips) { if (tw.includes(k)) { firstMissKey = k; break; } }
                     }
-                    chip.innerHTML = highlighted;
                 }
             });
 
-            const score = Math.round((correctCount / tWords.length) * 100);
+            const score = Math.round((correct / tWords.length) * 100);
             stats.data.total++;
-            const scoreElement = document.getElementById(`val-${id}`);
-            scoreElement.innerText = score;
-            scoreElement.style.color = score >= 90 ? '#00C853' : '#FF9800';
+            const scoreVal = document.getElementById(`val-${id}`);
+            scoreVal.innerText = score;
+            scoreVal.style.color = score >= 90 ? '#00C853' : '#FF9800';
 
             const ad = document.getElementById(`ad-${id}`);
             if (score >= 90) {
                 stats.addPass(id);
                 document.getElementById(`card-${id}`).classList.add('cleared');
-                ad.innerHTML = "🎉 合格！完璧だぜ！";
+                ad.innerHTML = "<b>🎉 合格！</b> 素晴らしい発音だぜ！";
                 if(score === 100) confetti();
             } else {
-                ad.innerHTML = `90点未満だ！${firstMissedKey ? `<br><b>💡コツ:</b> ${tips[firstMissedKey]}` : "<br>もう少しハッキリ発音してみよう！"}`;
+                ad.innerHTML = `<b>惜しい！90点以上で合格だ。</b><br>${firstMissKey ? `💡コツ: ${tips[firstMissKey]}` : "もう少しハッキリ話してみよう！"}`;
             }
             ad.style.display = "block";
             stats.save();
