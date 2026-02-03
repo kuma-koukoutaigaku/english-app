@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>K高等学校 - 18時解禁・中辛発音矯正</title>
+    <title>K高等学校 - 18時解禁・完全版</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
+        /* デザイン・スタイル（変更なし） */
         @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@700&display=swap');
         :root { --primary: #FF9800; --secondary: #1a237e; --bg: #F0F4F8; --perfect: #00C853; --miss: #FF5252; }
         body { font-family: 'Helvetica Neue', Arial, sans-serif; background: var(--bg); color: #333; margin: 0; padding: 15px; padding-bottom: 50px; }
@@ -48,31 +49,25 @@
         <div class="stat-item">🏆 合格数: <span id="passCount">0</span>個</div>
     </div>
     <div id="dateMenu" class="menu-container"></div>
-    <div class="guide-text">※英単語をタップするとお手本が流れるぜ</div>
     <div id="content">読み込み中...</div>
 
     <script>
-        // --- ここにCSVのURLを貼るんだぜ！ ---
         const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRAWmRJRNgjq3OtDdRPDvf3uXywGfHW6_saJSkox9Q0jHOUrg9RzjYCMcCeB8r5aesQUPJo1p1Lvbbm/pub?gid=0&single=true&output=csv';
-        
         let allData = [];
         let sessionStats = { total: 0, pass: 0 };
 
-        // 復活させたアドバイス集
         const tips = {
             'l': "『L』は舌先を上の前歯の裏に強く押し当てて弾いて！", 'r': "『R』は舌をどこにも触れさせず、奥にグッと引こう。",
             'th': "『Th』は前歯で舌を軽く噛んで、隙間から息を出すのが正解。", 'v': "『V』は下唇を上の歯で軽く押さえて、喉を震わせてみて。",
-            'f': "『F』は唇を噛まず、上の歯と下唇の間から息を漏らして。", 's': "『S』は日本語の『ス』より鋭く、長く息を吐き出すイメージ。",
+            'f': "『F』は唇を噛まず、上の歯と下唇の間から息を漏らして。", 's': "『S』は鋭く、長く息を吐き出すイメージ。",
             'sh': "『Sh』は静かにさせる時の『シー』をもっと強く出す感じ！", 't': "語尾の『T』は『ト』と言わず、息だけで『ッ』と止めて。",
             'd': "語尾の『D』は声を出しすぎず、軽く弾く程度でOK。", 'w': "『W』は口を思いっきり突き出してから始めると伝わるよ。",
             'a': "『A』は口を横に引きながら『ア』と『エ』を同時に出す感じ。", 'o': "『O』は口を縦に開けて、喉の奥から音を出してみて。",
             'i': "『I』は口を横に引き、短くハッキリ発音しよう。", 'u': "『U』は日本語の『ウ』より少しリラックスして出そう。",
-            'z': "『Z』は蜂が飛ぶような『ズーー』という振動を意識！", 'y': "『Y』は少し『イ』を混ぜるように、粘っこく出してみよう。",
-            'g': "『G』は喉の奥を塞いでから一気に開放するイメージ。", 'ae': "『æ』の音は、驚いた時の『アッ』に近い口の形だよ。",
-            'n': "語尾の『N』は舌を上顎にべったりつけて音を止めて。", 'm': "語尾の『M』は唇をしっかり閉じて鼻から音を抜こう。"
+            'z': "『Z』は蜂が飛ぶような『ズーー』という振動を意識！", 'y': "『Y』は少し『イ』を混ぜるように、粘っこく出してみよう。"
         };
 
-        const scoreMsgs = ["不合格！やり直し","判定不能...","もっと声を張れ！","発音が甘すぎる","カタカナ卒業せよ","基礎から練習だ","あと一歩！","合格！合格！","完璧だぜ！","神レベル！","伝説確定！"];
+        const scoreMsgs = ["不合格","判定不能","声出せ！","甘すぎる","カタカナ卒業","あと一歩","合格ライン","合格！","完璧！","神！","伝説！"];
 
         async function loadData() {
             try {
@@ -80,10 +75,7 @@
                 const text = await res.text();
                 allData = text.split(/\r?\n/).filter(line => line.trim() !== "").map(r => r.split(','));
                 createMenu();
-            } catch (e) { 
-                console.error("CSV読み込み失敗", e);
-                document.getElementById('content').innerHTML = "CSV読み込みに失敗したぜ。";
-            }
+            } catch (e) { document.getElementById('content').innerHTML = "CSV読み込み失敗"; }
         }
 
         function createMenu() {
@@ -101,7 +93,7 @@
 
             menu.innerHTML = '';
             if (dates.length === 0) {
-                document.getElementById('content').innerHTML = '<div style="text-align:center; padding:20px;">本日の課題は18時に解禁だぜ！</div>';
+                document.getElementById('content').innerHTML = '<div style="text-align:center; padding:20px;">本日の課題は18時に解禁されるぜ。</div>';
                 return;
             }
 
@@ -124,7 +116,7 @@
             container.innerHTML = '';
             const rows = allData.filter(r => r[0] === date);
             rows.forEach((row, i) => {
-                const title = row[1] || "本日のレッスン";
+                const title = row[1] || "今日のレッスン"; // 見出しは大文字等そのまま
                 const yt = row[12] || "#";
                 let phs = '';
                 for (let j = 2; j <= 10; j += 2) {
@@ -132,7 +124,9 @@
                     const jp = row[j+1]?.trim();
                     if (!en || en.length < 2) continue;
                     const id = `p-${i}-${j}`;
-                    phs += `<div class="phrase-item"><span class="jp-text">${jp}</span><div class="word-tap-area" id="area-${id}">${en.split(' ').map(w => `<span class="word-chip" onclick="speak('${w.replace(/'/g,"")}')">${w}</span>`).join(' ')}</div><div class="voice-section"><span class="voice-label">キミの英語</span><div class="voice-text" id="fb-${id}">...</div><div class="score-display" id="sc-${id}"></div></div><button class="speak-btn" id="btn-${id}" onclick="check('${en.replace(/'/g,"\\'")}', '${id}')">🎤 判定スタート</button><div class="advice-box" id="ad-${id}"></div></div>`;
+                    // 単語の表示は大文字小文字を維持したままチップ化
+                    const chips = en.split(' ').map(w => `<span class="word-chip" onclick="speak('${w.replace(/'/g,"")}')">${w}</span>`).join(' ');
+                    phs += `<div class="phrase-item"><span class="jp-text">${jp}</span><div class="word-tap-area" id="area-${id}">${chips}</div><div class="voice-section"><span class="voice-label">キミの英語</span><div class="voice-text" id="fb-${id}">...</div><div class="score-display" id="sc-${id}"></div></div><button class="speak-btn" id="btn-${id}" onclick="check('${en.replace(/'/g,"\\'")}', '${id}')">🎤 判定スタート</button><div class="advice-box" id="ad-${id}"></div></div>`;
                 }
                 container.innerHTML += `<div class="practice-card"><div class="yt-area"><a href="${yt}" target="_blank" class="yt-link"><svg class="yt-icon" viewBox="0 0 24 24"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/></svg><span class="yt-sub-text">動画で予習</span><span class="yt-video-title">${title}</span></a></div>${phs}</div>`;
             });
@@ -140,12 +134,11 @@
 
         function speak(t) {
             const u = new SpeechSynthesisUtterance(t);
-            u.lang = 'en-US';
-            u.rate = 0.8;
+            u.lang = 'en-US'; u.rate = 0.8;
             window.speechSynthesis.speak(u);
         }
 
-        function check(target, id) {
+        function check(targetRaw, id) {
             const btn = document.getElementById(`btn-${id}`);
             const fb = document.getElementById(`fb-${id}`);
             const area = document.getElementById(`area-${id}`);
@@ -162,13 +155,14 @@
             rec.onresult = (e) => {
                 btn.classList.remove('recording');
                 btn.innerText = "🎤 判定スタート";
-                
                 const res = e.results[0][0];
                 const speechRaw = res.transcript.toLowerCase();
                 const confidence = res.confidence;
 
                 const sWords = speechRaw.replace(/[.!?,]/g, "").split(/\s+/);
-                const tWords = target.toLowerCase().replace(/[.!?,]/g, "").split(/\s+/);
+                // 判定用には小文字にするが、表示用には元の targetRaw を使う
+                const tWordsDisplay = targetRaw.split(/\s+/);
+                const tWordsMatch = targetRaw.toLowerCase().replace(/[.!?,]/g, "").split(/\s+/);
 
                 let displaySpeech = [];
                 let correctCount = 0;
@@ -176,18 +170,19 @@
                 let hasMiss = false;
                 let missedChars = "";
 
-                tWords.forEach((tw) => {
+                tWordsMatch.forEach((tw, idx) => {
+                    const originalWord = tWordsDisplay[idx];
                     const isMatched = sWords.includes(tw);
-                    const threshold = tw.length <= 2 ? 0.65 : 0.75; // 中辛判定
+                    const threshold = tw.length <= 2 ? 0.65 : 0.75; // 中辛
                     const isClear = isMatched && (confidence > threshold);
 
                     if(isClear) {
-                        html += `<span class="word-chip perfect" onclick="speak('${tw}')">${tw}</span> `;
-                        displaySpeech.push(tw);
+                        html += `<span class="word-chip perfect" onclick="speak('${tw}')">${originalWord}</span> `;
+                        displaySpeech.push(originalWord);
                         correctCount++;
                     } else {
-                        html += `<span class="word-chip miss" onclick="speak('${tw}')">${tw}</span> `;
-                        displaySpeech.push("???"); // 伏せ字
+                        html += `<span class="word-chip miss" onclick="speak('${tw}')">${originalWord}</span> `;
+                        displaySpeech.push("???");
                         missedChars += tw;
                         hasMiss = true;
                     }
@@ -196,8 +191,8 @@
                 fb.innerText = displaySpeech.join(" ");
                 area.innerHTML = html;
 
-                const extra = Math.max(0, sWords.length - tWords.length);
-                let score = Math.round((correctCount / tWords.length) * 100) - (extra * 10);
+                const extra = Math.max(0, sWords.length - tWordsMatch.length);
+                let score = Math.round((correctCount / tWordsMatch.length) * 100) - (extra * 10);
                 if (score < 0) score = 0;
 
                 const isPass = score >= 70;
@@ -209,34 +204,23 @@
                 const color = isPass ? "#00C853" : "#FF5252";
                 scArea.innerHTML = `<span class="score-val" style="color:${color}">${score}点</span><span class="score-status" style="color:${color}">${scoreMsgs[Math.floor(score/10)] || "不合格"}</span>`;
                 
-                // --- フィードバックとTips表示の復活 ---
                 if(isPass && !hasMiss && extra === 0) {
-                    confetti();
-                    ad.style.display = "none";
+                    confetti(); ad.style.display = "none";
                 } else {
                     let tipText = "";
-                    if (extra > 0) tipText += `<b>余計な単語を拾ったぜ！</b> "${speechRaw}" って聞こえたぞ。<br>`;
-                    if (hasMiss) tipText += `<b>???（赤色の単語）</b>はお手本を聴いて改善だ。<br>`;
-                    
-                    // 単語に含まれるスペルからTipsを検索
-                    for(let key in tips) {
-                        if(missedChars.includes(key)) {
-                            tipText += `<br>💡コツ：${tips[key]}`;
-                            break; // 1つ出せば十分
+                    if (extra > 0) tipText += `<b>余計な音が入ってるぜ！</b><br>`;
+                    if (hasMiss) {
+                        for(let key in tips) {
+                            if(missedChars.includes(key)) { tipText += `💡コツ：${tips[key]}<br>`; break; }
                         }
                     }
-                    ad.innerHTML = tipText || "もっとハッキリ、ネイティブっぽく言ってみよう！";
+                    ad.innerHTML = tipText || "ハッキリ発音してみよう！";
                     ad.style.display = "block";
                 }
             };
-
-            rec.onerror = () => {
-                btn.classList.remove('recording');
-                btn.innerText = "エラー（もう一度）";
-            };
+            rec.onerror = () => { btn.classList.remove('recording'); btn.innerText = "エラー（もう一度）"; };
             rec.start();
         }
-
         loadData();
     </script>
 </body>
