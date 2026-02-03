@@ -11,50 +11,60 @@
             --primary: #FF9800; --secondary: #1a237e; --bg: #F0F4F8;
             --perfect: #00C853; --miss: #FF5252;
         }
-        body { font-family: 'Helvetica Neue', Arial, sans-serif; background: var(--bg); color: #333; margin: 0; padding: 15px; }
+        body { font-family: 'Helvetica Neue', Arial, sans-serif; background: var(--bg); color: #333; margin: 0; padding: 15px; padding-bottom: 50px; }
         
         .header-area { text-align: center; margin-bottom: 20px; }
         .main-title { font-family: 'Noto Serif JP', serif; font-size: 1.5rem; color: var(--secondary); margin: 10px 0; border-bottom: 3px solid var(--primary); display: inline-block; }
-        .stats-container { background: white; border-radius: 15px; padding: 10px; display: flex; justify-content: space-around; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-        .stat-item { text-align: center; }
-        .stat-label { font-size: 0.7rem; color: #888; display: block; }
-        .stat-value { font-size: 1.1rem; font-weight: 900; color: var(--secondary); }
+        
+        /* YouTubeエリア */
+        .yt-area { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 15px; }
+        .yt-link { text-decoration: none; color: #333; display: block; }
+        .yt-icon { width: 45px; height: 45px; fill: #FF0000; display: block; margin: 0 auto 5px; }
+        .yt-sub-text { font-size: 0.75rem; color: #FF0000; font-weight: bold; display: block; }
+        .yt-video-title { font-size: 1rem; font-weight: bold; margin-top: 5px; color: var(--secondary); }
 
-        .menu-container { display: flex; gap: 8px; overflow-x: auto; padding: 10px 0; border-bottom: 1px solid #ddd; }
+        /* メニュー */
+        .menu-container { display: flex; gap: 8px; overflow-x: auto; padding: 10px 0; margin-bottom: 10px; }
         .date-tab { background: #fff; border: 1px solid #ddd; padding: 10px 18px; border-radius: 20px; cursor: pointer; white-space: nowrap; font-weight: bold; color: #666; }
         .date-tab.active { background: var(--secondary); color: white; border-color: var(--secondary); }
 
+        /* 練習カード */
         .practice-card { background: white; border-radius: 24px; padding: 20px; margin-bottom: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
-        
-        .yt-area { text-align: center; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 15px; }
-        .yt-link { display: inline-flex; flex-direction: column; align-items: center; text-decoration: none; color: #333; }
-        .yt-icon-svg { width: 40px; height: 40px; fill: #FF0000; margin-bottom: 5px; }
-        .yt-sub-text { font-size: 0.7rem; color: #FF0000; font-weight: bold; }
-        .yt-video-title { font-size: 1rem; font-weight: bold; margin-top: 5px; display: block; color: #333; }
-
         .phrase-item { margin-bottom: 40px; position: relative; }
         .jp-text { color: #1a1a1a; font-size: 1.2rem; font-weight: 800; margin-bottom: 10px; display: block; }
         
         .word-tap-area { font-size: 1.4rem; margin-bottom: 15px; line-height: 1.8; }
         .word-chip { cursor: pointer; padding: 2px 4px; border-radius: 4px; display: inline-block; transition: 0.2s; }
         .word-chip.perfect { color: var(--perfect); font-weight: bold; }
-        .word-chip.miss { color: var(--miss); background: rgba(255, 82, 82, 0.1); font-weight: bold; }
+        .word-chip.miss { color: var(--miss); background: rgba(255, 82, 82, 0.05); font-weight: bold; }
 
+        /* 音声認識エリア */
         .voice-section { background: #2d3436; border-radius: 15px; padding: 15px; color: #fff; position: relative; min-height: 60px; }
         .voice-label { font-size: 0.75rem; color: #aaa; display: block; margin-bottom: 5px; }
-        .voice-text { font-size: 1.1rem; color: #55efc4; font-weight: bold; padding-right: 100px; line-height: 1.3; }
+        .voice-text { font-size: 1.1rem; color: #55efc4; font-weight: bold; padding-right: 110px; line-height: 1.3; }
         
         .score-display { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); text-align: center; width: 100px; }
-        .score-val { font-size: 1.6rem; font-weight: 900; display: block; line-height: 1; margin-bottom: 2px; }
-        .score-status { font-size: 0.7rem; font-weight: bold; white-space: nowrap; }
+        .score-val { font-size: 1.7rem; font-weight: 900; display: block; line-height: 1; }
+        .score-status { font-size: 0.7rem; font-weight: bold; margin-top: 3px; display: block; }
 
+        /* 録音ボタンとアニメーション */
         .speak-btn { 
             width: 100%; background: var(--primary); color: white; border: none; padding: 18px; 
             border-radius: 35px; cursor: pointer; font-weight: bold; font-size: 1.2rem; margin-top: 15px;
-            box-shadow: 0 6px 0 #E68A00;
+            box-shadow: 0 6px 0 #E68A00; transition: all 0.3s ease;
         }
-        .speak-btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #E68A00; }
-        
+        .speak-btn.recording {
+            background: #d63031 !important;
+            box-shadow: 0 4px 0 #962121;
+            animation: pulse-ring 1.25s infinite;
+            transform: scale(1.02);
+        }
+        @keyframes pulse-ring {
+            0% { box-shadow: 0 0 0 0 rgba(214, 48, 49, 0.7); }
+            70% { box-shadow: 0 0 0 15px rgba(214, 48, 49, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(214, 48, 49, 0); }
+        }
+
         .advice-box { margin-top: 12px; background: #fff9db; padding: 15px; border-radius: 12px; font-size: 0.85rem; border-left: 5px solid #fcc419; display: none; color: #333; line-height: 1.5; }
     </style>
 </head>
@@ -62,16 +72,6 @@
 
     <div class="header-area">
         <h1 class="main-title">高校退学教師のK高等学校</h1>
-        <div class="stats-container">
-            <div class="stat-item">
-                <span class="stat-label">今日キミがやった回数</span>
-                <span class="stat-value" id="dayCount">0</span>
-            </div>
-            <div class="stat-item">
-                <span class="stat-label">みんなのチャレンジ数</span>
-                <span class="stat-value" id="globalCount">0</span>
-            </div>
-        </div>
     </div>
     
     <div id="dateMenu" class="menu-container"></div>
@@ -80,11 +80,8 @@
     <script>
         const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRAWmRJRNgjq3OtDdRPDvf3uXywGfHW6_saJSkox9Q0jHOUrg9RzjYCMcCeB8r5aesQUPJo1p1Lvbbm/pub?gid=0&single=true&output=csv';
         let allData = [];
-        let myStats = JSON.parse(localStorage.getItem('k_v9_stats') || '{}');
-        let currentOpenDate = "";
 
-        // 厳選アドバイス20種類
-        const phonicsTips = {
+        const tips = {
             'l': "『L』は舌先を上の前歯の裏に強く押し当てて弾いて！",
             'r': "『R』は舌をどこにも触れさせず、奥にグッと引こう。",
             'th': "『Th』は前歯で舌を軽く噛んで、隙間から息を出すのが正解。",
@@ -107,28 +104,18 @@
             'm': "語尾の『M』は唇をしっかり閉じて鼻から音を抜こう。"
         };
 
-        function updateStats() {
-            document.getElementById('dayCount').innerText = myStats[currentOpenDate] || 0;
-            const myTotal = Object.values(myStats).reduce((a, b) => a + b, 0);
-            document.getElementById('globalCount').innerText = (2000 + myTotal * 15).toLocaleString();
-        }
-
         async function loadData() {
             try {
-                const response = await fetch(csvUrl);
-                const csvString = await response.text();
-                allData = csvString.split(/\r?\n/).map(row => row.split(','));
+                const res = await fetch(csvUrl);
+                const text = await res.text();
+                allData = text.split(/\r?\n/).map(r => r.split(','));
                 createMenu();
-            } catch (e) { console.error(e); }
+            } catch (e) { console.error("CSV読み込み失敗", e); }
         }
 
         function createMenu() {
             const menu = document.getElementById('dateMenu');
-            const today = new Date();
-            const todayStr = today.getFullYear() + "/" + String(today.getMonth() + 1).padStart(2, '0') + "/" + String(today.getDate()).padStart(2, '0');
-            const dates = [...new Set(allData.slice(1).map(r => r[0]))]
-                .filter(d => d && d.trim() !== "" && d <= todayStr)
-                .sort((a, b) => b.localeCompare(a)); 
+            const dates = [...new Set(allData.slice(1).map(r => r[0]))].filter(d => d).sort((a, b) => b.localeCompare(a));
             menu.innerHTML = '';
             dates.forEach(date => {
                 const btn = document.createElement('button');
@@ -137,137 +124,125 @@
                 btn.onclick = () => {
                     document.querySelectorAll('.date-tab').forEach(t => t.classList.remove('active'));
                     btn.classList.add('active');
-                    currentOpenDate = date;
-                    updateStats();
-                    showByDate(date);
+                    showContent(date);
                 };
                 menu.appendChild(btn);
             });
             if(menu.firstChild) menu.firstChild.click();
         }
 
-        function playWord(text) {
-            const uttr = new SpeechSynthesisUtterance(text);
-            uttr.lang = 'en-US';
-            uttr.rate = 0.85;
-            window.speechSynthesis.speak(uttr);
-        }
-
-        function showByDate(targetDate) {
+        function showContent(date) {
             const container = document.getElementById('content');
             container.innerHTML = '';
-            const filteredRows = allData.filter(row => row[0] === targetDate);
-            filteredRows.forEach((row, i) => {
-                const videoTitle = row[1] || "英会話レッスン";
-                const youtubeUrl = row[12] || "#";
-                let phrasesHtml = '';
+            const rows = allData.filter(r => r[0] === date);
+            rows.forEach((row, i) => {
+                const title = row[1] || "本日のレッスン";
+                const yt = row[12] || "#";
+                let phs = '';
                 for (let j = 2; j <= 10; j += 2) {
                     const en = row[j]?.trim();
                     const jp = row[j+1]?.trim();
                     if (!en || en.length < 2) continue;
                     const id = `p-${i}-${j}`;
-                    const wordChips = en.split(' ').map(w => `<span class="word-chip" onclick="playWord('${w.replace(/'/g,"")}')">${w}</span>`).join(' ');
-
-                    phrasesHtml += `
+                    phs += `
                         <div class="phrase-item">
                             <span class="jp-text">${jp}</span>
-                            <div class="word-tap-area" id="area-${id}">${wordChips}</div>
+                            <div class="word-tap-area" id="area-${id}">
+                                ${en.split(' ').map(w => `<span class="word-chip" onclick="speak('${w.replace(/'/g,"")}')">${w}</span>`).join(' ')}
+                            </div>
                             <div class="voice-section">
                                 <span class="voice-label">キミの英語</span>
-                                <div class="voice-text" id="feedback-${id}">...</div>
-                                <div class="score-display" id="score-${id}"></div>
+                                <div class="voice-text" id="fb-${id}">...</div>
+                                <div class="score-display" id="sc-${id}"></div>
                             </div>
-                            <button class="speak-btn" id="btn-${id}" onclick="check('${en.replace(/'/g, "\\'")}', '${id}')">🎤 判定スタート</button>
-                            <div class="advice-box" id="advice-${id}"></div>
+                            <button class="speak-btn" id="btn-${id}" onclick="check('${en.replace(/'/g,"\\'")}', '${id}')">🎤 判定スタート</button>
+                            <div class="advice-box" id="ad-${id}"></div>
                         </div>`;
                 }
-                container.innerHTML += `<div class="practice-card">${phrasesHtml}</div>`;
+                container.innerHTML += `
+                    <div class="practice-card">
+                        <div class="yt-area">
+                            <a href="${yt}" target="_blank" class="yt-link">
+                                <svg class="yt-icon" viewBox="0 0 24 24"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/></svg>
+                                <span class="yt-sub-text">この動画をショート動画で見る</span>
+                                <span class="yt-video-title">${title}</span>
+                            </a>
+                        </div>
+                        ${phs}
+                    </div>`;
             });
         }
 
-        function getStatus(score) {
-            if (score >= 100) return "伝説！Perfect";
-            if (score >= 90) return "合格！ネイティブ級";
-            if (score >= 80) return "あと一歩！";
-            if (score >= 70) return "伝わるけど惜しい";
-            if (score >= 60) return "もっとハッキリ！";
-            if (score >= 50) return "カタカナかな？";
-            if (score >= 40) return "聞き取れないな…";
-            if (score >= 30) return "頑張ろう！";
-            if (score >= 20) return "お手本を聴こう";
-            if (score >= 10) return "声が小さいかも？";
-            return "もう一度挑戦！";
+        function speak(t) {
+            const u = new SpeechSynthesisUtterance(t);
+            u.lang = 'en-US';
+            window.speechSynthesis.speak(u);
+        }
+
+        function getStatus(s) {
+            const msgs = ["不合格！やり直し","声が小さい？","もっと練習！","基礎を固めよう","カタカナっぽい","半分正解！","いい感じ！","合格まであと少し","ほぼ完璧！","合格！すごい！","伝説級！神！"];
+            return msgs[Math.floor(s/10)] || msgs[0];
         }
 
         function check(target, id) {
             const btn = document.getElementById(`btn-${id}`);
-            const feedback = document.getElementById(`feedback-${id}`);
+            const fb = document.getElementById(`fb-${id}`);
             const area = document.getElementById(`area-${id}`);
-            const scoreDisp = document.getElementById(`score-${id}`);
-            const advice = document.getElementById(`advice-${id}`);
-            
-            btn.innerText = "聴いています...";
-            myStats[currentOpenDate] = (myStats[currentOpenDate] || 0) + 1;
-            localStorage.setItem('k_v9_stats', JSON.stringify(myStats));
-            updateStats();
+            const scArea = document.getElementById(`sc-${id}`);
+            const ad = document.getElementById(`ad-${id}`);
 
-            const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-            recognition.lang = 'en-US';
-            
-            recognition.onresult = (event) => {
+            btn.classList.add('recording');
+            btn.innerText = "聞いています...どうぞ！";
+
+            const rec = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+            rec.lang = 'en-US';
+
+            rec.onresult = (e) => {
+                btn.classList.remove('recording');
                 btn.innerText = "🎤 判定スタート";
-                const speech = event.results[0][0].transcript;
-                const conf = event.results[0][0].confidence;
-                feedback.innerText = speech;
-
-                const tWords = target.split(/\s+/);
-                const sWords = speech.toLowerCase().replace(/[.!?,]/g, "").split(/\s+/);
                 
-                let correctCount = 0;
-                let resultHtml = "";
-                let missedChars = "";
-
-                tWords.forEach(word => {
-                    const cleanW = word.toLowerCase().replace(/[.!?,]/g, "");
-                    // 判定を厳格に：単語が一致し、かつ信頼度(conf)が0.94以上のみ緑
-                    const isMatched = sWords.includes(cleanW);
-                    
-                    if(isMatched && conf > 0.94) {
-                        resultHtml += `<span class="word-chip perfect" onclick="playWord('${word.replace(/'/g,"")}')">${word}</span> `;
-                        correctCount++;
+                const speech = e.results[0][0].transcript;
+                fb.innerText = speech;
+                
+                const sWords = speech.toLowerCase().replace(/[.!?,]/g, "").split(/\s+/);
+                const tWords = target.split(/\s+/);
+                let correct = 0;
+                let html = "";
+                let missed = "";
+                
+                tWords.forEach(w => {
+                    const cleanW = w.toLowerCase().replace(/[.!?,]/g, "");
+                    // 認識結果(sWords)に単語が含まれていれば緑（同期）
+                    if(sWords.includes(cleanW)) {
+                        html += `<span class="word-chip perfect" onclick="speak('${w.replace(/'/g,"")}')">${w}</span> `;
+                        correct++;
                     } else {
-                        resultHtml += `<span class="word-chip miss" onclick="playWord('${word.replace(/'/g,"")}')">${word}</span> `;
-                        missedChars += cleanW;
+                        html += `<span class="word-chip miss" onclick="speak('${w.replace(/'/g,"")}')">${w}</span> `;
+                        missed += cleanW;
                     }
                 });
-                area.innerHTML = resultHtml;
+                area.innerHTML = html;
 
-                const finalScore = Math.round((correctCount / tWords.length) * 100);
-                const scoreColor = finalScore >= 90 ? "#00C853" : (finalScore >= 60 ? "#FF9800" : "#FF5252");
-
-                if(finalScore >= 90) {
-                    confetti();
-                    advice.style.display = "none";
+                const score = Math.round((correct / tWords.length) * 100);
+                const color = score >= 90 ? "#00C853" : "#FF5252";
+                scArea.innerHTML = `<span class="score-val" style="color:${color}">${score}点</span><span class="score-status" style="color:${color}">${getStatus(score)}</span>`;
+                
+                if(score >= 90) { 
+                    confetti(); 
+                    ad.style.display="none"; 
                 } else {
-                    let selectedTip = "お手本をタップして、自分の声との違いを聴き比べてみて！";
-                    // 失敗した文字からアドバイスを抽出
-                    for (let key in phonicsTips) {
-                        if (missedChars.includes(key)) {
-                            selectedTip = phonicsTips[key];
-                            break;
-                        }
-                    }
-                    advice.style.display = "block";
-                    advice.innerHTML = `<b>💡 先生からのアドバイス：</b><br>${selectedTip}`;
+                    let tip = "お手本をよく聴いて、真似してみよう！";
+                    for(let k in tips) { if(missed.includes(k)) { tip = tips[k]; break; } }
+                    ad.innerHTML = `<b>💡 アドバイス：</b><br>${tip}`;
+                    ad.style.display="block";
                 }
-
-                scoreDisp.innerHTML = `
-                    <span class="score-val" style="color:${scoreColor}">${finalScore}点</span>
-                    <span class="score-status" style="color:${scoreColor}">${getStatus(finalScore)}</span>
-                `;
             };
-            recognition.onerror = () => { btn.innerText = "聞き取れなかった！"; };
-            recognition.start();
+
+            rec.onerror = () => {
+                btn.classList.remove('recording');
+                btn.innerText = "失敗！もう一度";
+            };
+            rec.start();
         }
         loadData();
     </script>
