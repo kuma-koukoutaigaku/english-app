@@ -22,32 +22,27 @@
         .day-header { text-align: center; margin-bottom: 15px; }
         .video-title { font-weight: bold; font-size: 1.1rem; color: #333; margin-bottom: 8px; display: block; }
         
-        .video-link-btn { 
-            display: inline-flex; align-items: center; background: var(--yt-red); color: #fff; 
-            text-decoration: none; padding: 8px 16px; border-radius: 8px; font-weight: bold; font-size: 0.85rem; 
-        }
-        .yt-logo-white {
-            display: inline-flex; align-items: center; justify-content: center;
-            width: 18px; height: 12px; background: white; border-radius: 3px; margin-right: 6px; position: relative;
-        }
-        .yt-logo-white::after {
-            content: ""; border-style: solid; border-width: 3.5px 0 3.5px 5.5px;
-            border-color: transparent transparent transparent var(--yt-red);
-        }
+        .video-link-btn { display: inline-flex; align-items: center; background: var(--yt-red); color: #fff; text-decoration: none; padding: 8px 16px; border-radius: 8px; font-weight: bold; font-size: 0.85rem; }
+        .yt-logo-white { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 12px; background: white; border-radius: 3px; margin-right: 6px; position: relative; }
+        .yt-logo-white::after { content: ""; border-style: solid; border-width: 3.5px 0 3.5px 5.5px; border-color: transparent transparent transparent var(--yt-red); }
 
         .menu-container { display: flex; gap: 8px; overflow-x: auto; padding: 5px 0 15px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
         .date-tab { background: #fff; border: 1px solid #ddd; padding: 6px 12px; border-radius: 20px; cursor: pointer; white-space: nowrap; font-size: 0.85rem; }
         .date-tab.active { background: var(--secondary); color: white; border-color: var(--secondary); }
 
-        .practice-card { background: white; border-radius: 20px; padding: 18px; margin-bottom: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); border: 2px solid transparent; }
+        .practice-card { background: #fdfdfd; border-radius: 20px; padding: 18px; margin-bottom: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); border: 2px solid #eee; transition: 0.3s; }
         .practice-card.cleared { border-color: var(--perfect); background: #f0fff4; }
         
-        .jp-text { font-size: 0.9rem; font-weight: 800; margin-bottom: 6px; display: block; color: #666; }
-        .word-tap-area { font-size: 1.4rem; margin-bottom: 15px; line-height: 1.3; font-weight: bold; color: #000; }
-        .word-chip { cursor: pointer; padding: 2px 1px; display: inline-block; border-bottom: 2px solid #eee; margin-right: 3px; }
-        .word-chip.perfect { color: var(--perfect); border-bottom: none; }
-        .word-chip.miss { color: var(--miss) !important; text-decoration: underline; font-weight: 900; background: #fff0f0; }
-        .word-chip.miss b { color: var(--miss) !important; }
+        .jp-text { font-size: 0.85rem; font-weight: 800; margin-bottom: 6px; display: block; color: #999; transition: 0.3s; }
+        .practice-card.cleared .jp-text { color: #666; }
+
+        .word-tap-area { font-size: 1.4rem; margin-bottom: 15px; line-height: 1.3; font-weight: bold; color: #999; transition: 0.3s; }
+        .practice-card.cleared .word-tap-area { color: #000; }
+        
+        .word-chip { cursor: pointer; padding: 2px 1px; display: inline-block; margin-right: 3px; border-bottom: 2px solid transparent; }
+        .word-chip.perfect { color: var(--perfect) !important; border-bottom: none; }
+        .word-chip.miss { color: #555; border-bottom: 2px solid #ddd; }
+        .word-chip.miss b { color: var(--miss) !important; text-decoration: underline; font-weight: 900; }
 
         .voice-section { background: #2d3436; border-radius: 12px; padding: 10px; color: #fff; }
         .voice-header { display: flex; justify-content: space-between; align-items: center; }
@@ -87,15 +82,15 @@
         const tips = { 'th':"【th】舌を挟んで",'r':"【r】舌を丸めて",'l':"【l】舌先を前歯裏",'v':"【v】下唇を噛む",'f':"【f】下唇を噛む",'sh':"【sh】強く息を",'ae':"【a】口を横に",'ee':"【ee】伸ばす" };
 
         const stats = {
-            data: JSON.parse(localStorage.getItem('kHighStats_v23')) || { total: 0, pass: 0, passedIds: [] },
+            data: JSON.parse(localStorage.getItem('kHighStats_v24')) || { total: 0, pass: 0, passedIds: [] },
             save() {
-                localStorage.setItem('kHighStats_v23', JSON.stringify(this.data));
+                localStorage.setItem('kHighStats_v24', JSON.stringify(this.data));
                 document.getElementById('totalCount').innerText = this.data.total;
                 document.getElementById('passCount').innerText = this.data.pass;
             }
         };
 
-        function resetStats() { if(confirm("リセットする？")) { localStorage.removeItem('kHighStats_v23'); location.reload(); } }
+        function resetStats() { if(confirm("リセットする？")) { localStorage.removeItem('kHighStats_v24'); location.reload(); } }
 
         async function init() {
             stats.save();
@@ -133,8 +128,9 @@
                     const en = row[j]?.trim(); const jp = row[j+1]?.trim();
                     if (!en || en.length < 2) continue;
                     const id = `id-${date}-${rowIndex}-${j}`;
+                    const isPassed = stats.data.passedIds.includes(id);
                     container.innerHTML += `
-                    <div class="practice-card ${stats.data.passedIds.includes(id)?'cleared':''}" id="card-${id}">
+                    <div class="practice-card ${isPassed?'cleared':''}" id="card-${id}">
                         <span class="jp-text">${jp}</span>
                         <div class="word-tap-area" id="area-${id}">${en.split(' ').map(w => `<span class="word-chip" onclick="play('${w.replace(/[-?!.,]/g,"")}')">${w}</span>`).join('')}</div>
                         <div class="voice-section">
@@ -160,7 +156,6 @@
             const fb = document.getElementById(`fb-${currentId}`);
             const btn = document.getElementById(`btn-${currentId}`);
             fb.innerText = "...";
-            
             window.SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             recognition = new SpeechRecognition();
             recognition.lang = 'en-US';
@@ -169,14 +164,9 @@
             recognition.onstart = () => { 
                 isRecording = true; 
                 btn.classList.add('recording'); btn.innerText = "停止";
-                // 4秒後に強制終了タイマー
                 timer = setTimeout(() => { if(isRecording) finish(); }, 4000);
             };
-            
-            recognition.onresult = (e) => { 
-                fb.innerText = Array.from(e.results).map(r => r[0].transcript).join(''); 
-            };
-            
+            recognition.onresult = (e) => { fb.innerText = Array.from(e.results).map(r => r[0].transcript).join(''); };
             recognition.onend = () => { if(isRecording) finish(); };
             recognition.onerror = () => { isRecording = false; resetUI(); };
             recognition.start();
@@ -208,7 +198,7 @@
                 const cleanT = clean(origW);
                 if (rWords.includes(cleanT)) {
                     chips[i].className = 'word-chip perfect';
-                    chips[i].innerHTML = origW; // 元に戻す
+                    chips[i].innerHTML = origW;
                     matchCount++;
                 } else {
                     chips[i].className = 'word-chip miss';
@@ -235,13 +225,8 @@
                     confetti({ particleCount: 40, spread: 50, origin: { y: 0.8 } });
                 }
             } else {
-                if (foundTips.length > 0) {
-                    ad.innerHTML = [...new Set(foundTips)].slice(0, 2).map(t => `・${t}`).join('<br>');
-                    ad.style.display = "block";
-                } else {
-                    ad.innerHTML = "・もう一度ゆっくり読んでみて！";
-                    ad.style.display = "block";
-                }
+                ad.innerHTML = foundTips.length > 0 ? [...new Set(foundTips)].slice(0, 2).map(t => `・${t}`).join('<br>') : "・もう一度ゆっくり読んでみて！";
+                ad.style.display = "block";
             }
             stats.data.total++; stats.save();
         }
