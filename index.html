@@ -11,8 +11,6 @@
 
     <script type="text/javascript">
       !function(){"use strict";!function(e,t){var n=e.amplitude||{_q:[],_iq:{}};if(n.invoked)e.console&&console.error&&console.error("Amplitude snippet has already been invoked");else{var r=function(e,t){e.prototype[t]=function(){return this._q.push({name:t,args:Array.prototype.slice.call(arguments)}),this}},s=function(e,t,n){return function(r){e._iq[t]._q.push({name:n,args:Array.prototype.slice.call(arguments),indexedArgs:r})}},o=function(e){e._q=[]},i=function(e,t){r(e,t)};n.invoked=!0;var a=t.createElement("script");a.type="text/javascript",a.integrity="sha384-PPf900p1ALYjth9vYiq39M1bcNoz5S09KN6O7T7mG7S7uCqK6mGq4p5nE8p9nE8p",a.crossOrigin="anonymous",a.async=!0,a.src="https://cdn.amplitude.com/libs/analytics-browser-2.11.1-min.js.gz",a.onload=function(){e.amplitude.runQueuedFunctions()};var c=t.getElementsByTagName("script")[0];c.parentNode.insertBefore(a,c);for(var p=function(){return this._q=[],this},l=["add","append","clearAll","prepend","set","setOnce","unset","preInsert","postInsert","remove","getUserProperties"],u=0;u<l.length;u++)i(p,l[u]);n.Identify=p;for(var d=function(){return this._q=[],this},f=["getEventProperties","setProductName","setQuantity","setPrice","setRevenue","setRevenueType","setEventProperties"],v=0;v<f.length;v++)i(d,f[v]);n.Revenue=d;var y=["getDeviceId","setDeviceId","getSessionId","setSessionId","getUserId","setUserId","setOptOut","setTransport","reset","extendSession"],g=["init","add","remove","track","logEvent","identify","groupIdentify","setGroup","revenue","flush"];for(var m=function(e){var t=function(t,n){e[t]=function(){var r={promise:new Promise((function(n){e._q.push({name:t,args:Array.prototype.slice.call(arguments),resolve:n})}))};return r}};for(var n=0;n<g.length;n++)t(g[n])},h=0;h<y.length;h++)r(n,y[h]);n.getInstance=function(e){return e=e||"_default",n._iq.hasOwnProperty(e)||(n._iq[e]={_q:[]},m(n._iq[e])),n._iq[e]},m(n),e.amplitude=n}}(window,document)}();
-      
-      // お前のAPIキーをセット
       amplitude.init('8b1a84f7ad7a94ed32e7e5c640d5411');
     </script>
 
@@ -21,67 +19,46 @@
     <title>K高-英語チェック</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
-        /* スタイルは変更なし（長いので省略せずそのまま維持） */
+        /* CSSは一番最初の状態を維持 */
         @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@700&display=swap');
-        :root { --primary: #FF9800; --secondary: #1a237e; --bg: #F0F4F8; --perfect: #00C853; --miss-bg: rgba(255, 152, 0, 0.1); --miss-word: #FF9800; --miss-char: #FF2052; }
-        body { font-family: 'Helvetica Neue', Arial, sans-serif; background: var(--bg); color: #333; margin: 0; padding: 15px; padding-bottom: 50px; }
+        :root { --primary: #FF9800; --secondary: #1a237e; --bg: #F0F4F8; --perfect: #00C853; }
+        body { font-family: 'Helvetica Neue', Arial, sans-serif; background: var(--bg); color: #333; margin: 0; padding: 15px; }
         .header-area { text-align: center; margin-bottom: 20px; }
         .main-title { font-family: 'Noto Serif JP', serif; font-size: 1.5rem; color: var(--secondary); margin: 10px 0; border-bottom: 3px solid var(--primary); display: inline-block; }
-        .stats-bar { background: #fff; border-radius: 12px; padding: 10px; margin-bottom: 15px; display: flex; justify-content: space-around; font-size: 0.9rem; font-weight: bold; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-        .yt-area { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 15px; }
-        .yt-link { text-decoration: none; color: #333; }
-        .yt-icon { width: 45px; height: 45px; fill: #FF0000; display: block; margin: 0 auto 5px; }
         .menu-container { display: flex; gap: 8px; overflow-x: auto; padding: 10px 0; }
         .date-tab { background: #fff; border: 1px solid #ddd; padding: 10px 18px; border-radius: 20px; cursor: pointer; white-space: nowrap; font-weight: bold; }
         .date-tab.active { background: var(--secondary); color: white; }
-        .practice-card { background: white; border-radius: 24px; padding: 20px; margin-bottom: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
-        .phrase-item { margin-bottom: 40px; }
+        .practice-card { background: white; border-radius: 24px; padding: 20px; margin-bottom: 25px; }
         .jp-text { color: #1a1a1a; font-size: 1.2rem; font-weight: 800; margin-bottom: 10px; display: block; }
         .word-tap-area { font-size: 1.4rem; margin-bottom: 15px; line-height: 1.8; }
         .word-chip { cursor: pointer; padding: 2px 6px; border-radius: 6px; display: inline-block; border-bottom: 1px dashed #ccc; }
         .word-chip.perfect { color: var(--perfect); border-bottom: none; }
-        .word-chip.miss { color: var(--miss-word); background: var(--miss-bg); border-bottom: 2px solid var(--miss-word); }
         .voice-section { background: #2d3436; border-radius: 15px; padding: 15px; color: #fff; position: relative; min-height: 60px; }
-        .voice-text { font-size: 1.1rem; color: #55efc4; padding-right: 110px; }
-        .score-display { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); text-align: center; }
+        .voice-text { font-size: 1.1rem; color: #55efc4; }
+        .score-display { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); }
         .speak-btn { width: 100%; background: var(--primary); color: white; border: none; padding: 18px; border-radius: 35px; cursor: pointer; font-weight: bold; font-size: 1.2rem; margin-top: 15px; box-shadow: 0 6px 0 #E68A00; }
-        .speak-btn.recording { background: #d63031 !important; animation: pulse-ring 1.25s infinite; }
-        @keyframes pulse-ring { 0% { box-shadow: 0 0 0 0 rgba(214, 48, 49, 0.7); } 70% { box-shadow: 0 0 0 15px rgba(214, 48, 49, 0); } 100% { box-shadow: 0 0 0 0 rgba(214, 48, 49, 0); } }
-        .advice-box { margin-top: 12px; background: #fff9db; padding: 15px; border-radius: 12px; font-size: 0.85rem; display: none; }
     </style>
 </head>
 <body>
     <div class="header-area"><h1 class="main-title">高校退学教師のK高等学校</h1></div>
-    <div class="stats-bar">
-        <div>🔥 挑戦: <span id="totalCount">0</span>回</div>
-        <div>🏆 合格: <span id="passCount">0</span>個</div>
-    </div>
     <div id="dateMenu" class="menu-container"></div>
     <div id="content">読み込み中...</div>
 
     <script>
         const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRAWmRJRNgjq3OtDdRPDvf3uXywGfHW6_saJSkox9Q0jHOUrg9RzjYCMcCeB8r5aesQUPJo1p1Lvbbm/pub?gid=0&single=true&output=csv';
         let allData = [];
-        let sessionStats = { total: 0, pass: 0 };
 
-        // CSVのパースを大幅に強化。カンマがあっても壊れないようにした。
+        // カンマ問題を解決するパース処理のみ追加
         function parseCSV(text) {
-            const rows = [];
-            let current = [];
-            let field = "";
-            let inQuotes = false;
-
+            const rows = []; let current = []; let field = ""; let inQuotes = false;
             for (let i = 0; i < text.length; i++) {
                 const char = text[i];
-                const next = text[i+1];
-                if (char === '"' && inQuotes && next === '"') { field += '"'; i++; }
+                if (char === '"' && text[i+1] === '"') { field += '"'; i++; }
                 else if (char === '"') { inQuotes = !inQuotes; }
                 else if (char === ',' && !inQuotes) { current.push(field); field = ""; }
                 else if ((char === '\r' || char === '\n') && !inQuotes) {
-                    current.push(field);
-                    if (current.length > 1) rows.push(current);
-                    field = ""; current = [];
-                    if (char === '\r' && next === '\n') i++;
+                    current.push(field); if (current.length > 1) rows.push(current);
+                    field = ""; current = []; if (char === '\r' && text[i+1] === '\n') i++;
                 } else { field += char; }
             }
             if (field || current.length > 0) { current.push(field); rows.push(current); }
@@ -119,17 +96,15 @@
             container.innerHTML = '';
             const rows = allData.filter(r => r[0] === date);
             rows.forEach((row, i) => {
-                const title = row[1] || "本日のレッスン";
-                const yt = row[12] || "#";
+                const title = row[1];
                 let phs = '';
-                // 英語列(2,4,6,8,10)と日本語列(3,5,7,9,11)をループ
                 for (let j = 2; j <= 10; j += 2) {
                     const en = row[j]?.trim();
                     const jp = row[j+1]?.trim();
                     if (!en) continue;
                     const id = `p-${i}-${j}`;
                     const chips = en.split(' ').map(w => `<span class="word-chip" onclick="speak('${w.replace(/'/g,"")}')">${w}</span>`).join(' ');
-                    phs += `<div class="phrase-item">
+                    phs += `<div style="margin-bottom:30px;">
                         <span class="jp-text">${jp}</span>
                         <div class="word-tap-area" id="area-${id}">${chips}</div>
                         <div class="voice-section">
@@ -139,7 +114,7 @@
                         <button class="speak-btn" id="btn-${id}" onclick="check('${en.replace(/'/g,"\\'")}', '${id}')">🎤 判定スタート</button>
                     </div>`;
                 }
-                container.innerHTML += `<div class="practice-card"><div class="yt-area"><a href="${yt}" target="_blank" class="yt-link"><svg class="yt-icon" viewBox="0 0 24 24"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/></svg><b>${title}</b></a></div>${phs}</div>`;
+                container.innerHTML += `<div class="practice-card"><h2>${title}</h2>${phs}</div>`;
             });
         }
 
@@ -152,46 +127,33 @@
 
         function check(targetRaw, id) {
             const btn = document.getElementById(`btn-${id}`);
-            const fb = document.getElementById(`fb-${id}`);
-            if (btn.classList.contains('recording')) return;
-            btn.classList.add('recording');
+            if (btn.innerText === "聴き取り中...") return;
             btn.innerText = "聴き取り中...";
-
             const Recognition = window.webkitSpeechRecognition || window.Recognition;
             const rec = new Recognition();
             rec.lang = 'en-US';
             rec.onresult = (e) => {
                 const res = e.results[0][0];
-                processResult(res, targetRaw, id, btn);
+                const speechRaw = res.transcript.toLowerCase();
+                document.getElementById(`fb-${id}`).innerText = res.transcript;
+                
+                const tWords = targetRaw.toLowerCase().replace(/[.!?,]/g, "").split(/\s+/);
+                const sWords = speechRaw.replace(/[.!?,]/g, "").split(/\s+/);
+                let matches = 0;
+                tWords.forEach(tw => { if(sWords.includes(tw)) matches++; });
+                let score = Math.round((matches / tWords.length) * 100);
+                
+                document.getElementById(`sc-${id}`).innerHTML = `<b>${score}点</b>`;
+                
+                // 追跡イベント送信
+                gtag('event', 'score', { 'value': score, 'phrase': targetRaw });
+                amplitude.track('Practice Completed', { 'score': score, 'phrase': targetRaw });
+
+                if(score >= 70) confetti();
+                btn.innerText = "🎤 判定スタート";
             };
-            rec.onerror = () => { btn.classList.remove('recording'); btn.innerText = "🎤 判定スタート"; };
+            rec.onerror = () => { btn.innerText = "🎤 判定スタート"; };
             rec.start();
-        }
-
-        function processResult(res, targetRaw, id, btn) {
-            btn.classList.remove('recording');
-            btn.innerText = "🎤 判定スタート";
-            const fb = document.getElementById(`fb-${id}`);
-            const scArea = document.getElementById(`sc-${id}`);
-            const area = document.getElementById(`area-${id}`);
-            
-            const speechRaw = res.transcript.toLowerCase();
-            fb.innerText = res.transcript;
-
-            const tWords = targetRaw.toLowerCase().replace(/[.!?,]/g, "").split(/\s+/);
-            const sWords = speechRaw.replace(/[.!?,]/g, "").split(/\s+/);
-
-            let matches = 0;
-            tWords.forEach(tw => { if(sWords.includes(tw)) matches++; });
-            let score = Math.round((matches / tWords.length) * 100);
-
-            scArea.innerHTML = `<b style="font-size:1.5rem; color:${score>=70?'#00C853':'#FF9800'}">${score}点</b>`;
-            
-            // イベント送信 (GA4 & Amplitude)
-            gtag('event', 'score', { 'value': score, 'phrase': targetRaw });
-            amplitude.track('Practice Completed', { 'score': score, 'phrase': targetRaw });
-
-            if(score >= 70) confetti();
         }
         loadData();
     </script>
