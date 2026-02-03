@@ -6,7 +6,6 @@
     <title>K高等学校 - 18時解禁・完全版</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
-        /* デザイン・スタイル（変更なし） */
         @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@700&display=swap');
         :root { --primary: #FF9800; --secondary: #1a237e; --bg: #F0F4F8; --perfect: #00C853; --miss: #FF5252; }
         body { font-family: 'Helvetica Neue', Arial, sans-serif; background: var(--bg); color: #333; margin: 0; padding: 15px; padding-bottom: 50px; }
@@ -17,7 +16,7 @@
         .yt-area { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 15px; }
         .yt-link { text-decoration: none; color: #333; display: block; }
         .yt-icon { width: 45px; height: 45px; fill: #FF0000; display: block; margin: 0 auto 5px; }
-        .yt-sub-text { font-size: 0.75rem; color: #FF0000; font-weight: bold; display: block; }
+        .yt-sub-text { font-size: 0.85rem; color: #FF0000; font-weight: bold; display: block; }
         .yt-video-title { font-size: 1rem; font-weight: bold; margin-top: 5px; color: var(--secondary); }
         .menu-container { display: flex; gap: 8px; overflow-x: auto; padding: 10px 0; margin-bottom: 10px; }
         .date-tab { background: #fff; border: 1px solid #ddd; padding: 10px 18px; border-radius: 20px; cursor: pointer; white-space: nowrap; font-weight: bold; color: #666; }
@@ -39,7 +38,6 @@
         .speak-btn.recording { background: #d63031 !important; animation: pulse-ring 1.25s infinite; }
         @keyframes pulse-ring { 0% { box-shadow: 0 0 0 0 rgba(214, 48, 49, 0.7); } 70% { box-shadow: 0 0 0 15px rgba(214, 48, 49, 0); } 100% { box-shadow: 0 0 0 0 rgba(214, 48, 49, 0); } }
         .advice-box { margin-top: 12px; background: #fff9db; padding: 15px; border-radius: 12px; font-size: 0.85rem; border-left: 5px solid #fcc419; display: none; color: #333; line-height: 1.5; }
-        .guide-text { font-size: 0.8rem; color: #888; text-align: center; margin-bottom: 10px; }
     </style>
 </head>
 <body>
@@ -57,14 +55,26 @@
         let sessionStats = { total: 0, pass: 0 };
 
         const tips = {
-            'l': "『L』は舌先を上の前歯の裏に強く押し当てて弾いて！", 'r': "『R』は舌をどこにも触れさせず、奥にグッと引こう。",
-            'th': "『Th』は前歯で舌を軽く噛んで、隙間から息を出すのが正解。", 'v': "『V』は下唇を上の歯で軽く押さえて、喉を震わせてみて。",
-            'f': "『F』は唇を噛まず、上の歯と下唇の間から息を漏らして。", 's': "『S』は鋭く、長く息を吐き出すイメージ。",
-            'sh': "『Sh』は静かにさせる時の『シー』をもっと強く出す感じ！", 't': "語尾の『T』は『ト』と言わず、息だけで『ッ』と止めて。",
-            'd': "語尾の『D』は声を出しすぎず、軽く弾く程度でOK。", 'w': "『W』は口を思いっきり突き出してから始めると伝わるよ。",
-            'a': "『A』は口を横に引きながら『ア』と『エ』を同時に出す感じ。", 'o': "『O』は口を縦に開けて、喉の奥から音を出してみて。",
-            'i': "『I』は口を横に引き、短くハッキリ発音しよう。", 'u': "『U』は日本語の『ウ』より少しリラックスして出そう。",
-            'z': "『Z』は蜂が飛ぶような『ズーー』という振動を意識！", 'y': "『Y』は少し『イ』を混ぜるように、粘っこく出してみよう。"
+            'l': "『L』は舌先を上の前歯の裏に強く押し当てて弾いて！",
+            'r': "『R』は舌をどこにも触れさせず、奥にグッと引こう。",
+            'th': "『Th』は前歯で舌を軽く噛んで、隙間から息を出すのが正解。",
+            'v': "『V』は下唇を上の歯で軽く押さえて、喉を震わせてみて。",
+            'f': "『F』は上の歯と下唇の間から息を漏らして。唇を噛まない！",
+            's': "『S』は鋭く、長く息を吐き出すイメージ。",
+            'sh': "『Sh』は静かにさせる時の『シー』をもっと強く！",
+            't': "語尾の『T』は息だけで『ッ』と止めて。トと言わない！",
+            'd': "語尾の『D』は声を出しすぎず、軽く弾く程度で。",
+            'w': "『W』は口を思いっきり突き出してから始めよう。",
+            'a': "『A』は口を横に引きながら『ア』と『エ』を同時に出す感じ。",
+            'o': "『O』は口を縦に大きく開けて、喉の奥から音を出してみて。",
+            'i': "『I』は口を横に強く引き、短くハッキリ発音しよう。",
+            'u': "『U』は日本語の『ウ』より唇をリラックスさせて。",
+            'e': "『E』は日本語の『エ』より少し口を左右に広げてみて。",
+            'ae': "『æ』の音だ！アとエの中間を意識して叫ぶ感じ。",
+            'ou': "『Ou』は『オ』で終わらず、最後に小さく『ゥ』を添えて。",
+            'ei': "『Ei』は『エ』を強く、後半の『イ』は添えるだけ。",
+            'z': "『Z』は蜂が飛ぶような『ズーー』という振動を意識！",
+            'y': "『Y』は少し『イ』を混ぜるように、粘っこくスタート。"
         };
 
         const scoreMsgs = ["不合格","判定不能","声出せ！","甘すぎる","カタカナ卒業","あと一歩","合格ライン","合格！","完璧！","神！","伝説！"];
@@ -116,7 +126,7 @@
             container.innerHTML = '';
             const rows = allData.filter(r => r[0] === date);
             rows.forEach((row, i) => {
-                const title = row[1] || "今日のレッスン"; // 見出しは大文字等そのまま
+                const title = row[1] || "今日のレッスン";
                 const yt = row[12] || "#";
                 let phs = '';
                 for (let j = 2; j <= 10; j += 2) {
@@ -124,11 +134,10 @@
                     const jp = row[j+1]?.trim();
                     if (!en || en.length < 2) continue;
                     const id = `p-${i}-${j}`;
-                    // 単語の表示は大文字小文字を維持したままチップ化
                     const chips = en.split(' ').map(w => `<span class="word-chip" onclick="speak('${w.replace(/'/g,"")}')">${w}</span>`).join(' ');
                     phs += `<div class="phrase-item"><span class="jp-text">${jp}</span><div class="word-tap-area" id="area-${id}">${chips}</div><div class="voice-section"><span class="voice-label">キミの英語</span><div class="voice-text" id="fb-${id}">...</div><div class="score-display" id="sc-${id}"></div></div><button class="speak-btn" id="btn-${id}" onclick="check('${en.replace(/'/g,"\\'")}', '${id}')">🎤 判定スタート</button><div class="advice-box" id="ad-${id}"></div></div>`;
                 }
-                container.innerHTML += `<div class="practice-card"><div class="yt-area"><a href="${yt}" target="_blank" class="yt-link"><svg class="yt-icon" viewBox="0 0 24 24"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/></svg><span class="yt-sub-text">動画で予習</span><span class="yt-video-title">${title}</span></a></div>${phs}</div>`;
+                container.innerHTML += `<div class="practice-card"><div class="yt-area"><a href="${yt}" target="_blank" class="yt-link"><svg class="yt-icon" viewBox="0 0 24 24"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/></svg><span class="yt-sub-text">ショート動画で見る</span><span class="yt-video-title">${title}</span></a></div>${phs}</div>`;
             });
         }
 
@@ -160,7 +169,6 @@
                 const confidence = res.confidence;
 
                 const sWords = speechRaw.replace(/[.!?,]/g, "").split(/\s+/);
-                // 判定用には小文字にするが、表示用には元の targetRaw を使う
                 const tWordsDisplay = targetRaw.split(/\s+/);
                 const tWordsMatch = targetRaw.toLowerCase().replace(/[.!?,]/g, "").split(/\s+/);
 
@@ -173,7 +181,7 @@
                 tWordsMatch.forEach((tw, idx) => {
                     const originalWord = tWordsDisplay[idx];
                     const isMatched = sWords.includes(tw);
-                    const threshold = tw.length <= 2 ? 0.65 : 0.75; // 中辛
+                    const threshold = tw.length <= 2 ? 0.65 : 0.75;
                     const isClear = isMatched && (confidence > threshold);
 
                     if(isClear) {
