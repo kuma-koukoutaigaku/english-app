@@ -20,7 +20,7 @@
         .stat-label { font-size: 0.7rem; color: #888; display: block; }
         .stat-value { font-size: 1.1rem; font-weight: 900; color: var(--secondary); }
 
-        .menu-container { display: flex; gap: 8px; overflow-x: auto; padding: 10px 0; }
+        .menu-container { display: flex; gap: 8px; overflow-x: auto; padding: 10px 0; border-bottom: 1px solid #ddd; }
         .date-tab { background: #fff; border: 1px solid #ddd; padding: 10px 18px; border-radius: 20px; cursor: pointer; white-space: nowrap; font-weight: bold; color: #666; }
         .date-tab.active { background: var(--secondary); color: white; border-color: var(--secondary); }
 
@@ -38,17 +38,15 @@
         .word-tap-area { font-size: 1.4rem; margin-bottom: 15px; line-height: 1.8; }
         .word-chip { cursor: pointer; padding: 2px 4px; border-radius: 4px; display: inline-block; transition: 0.2s; }
         .word-chip.perfect { color: var(--perfect); font-weight: bold; }
-        .word-chip.miss { color: var(--miss); background: rgba(255, 82, 82, 0.1); }
+        .word-chip.miss { color: var(--miss); background: rgba(255, 82, 82, 0.1); font-weight: bold; }
 
-        /* フィードバックエリア */
-        .voice-section { background: #2d3436; border-radius: 15px; padding: 15px; color: #fff; position: relative; min-height: 50px; }
+        .voice-section { background: #2d3436; border-radius: 15px; padding: 15px; color: #fff; position: relative; min-height: 60px; }
         .voice-label { font-size: 0.75rem; color: #aaa; display: block; margin-bottom: 5px; }
-        .voice-text { font-size: 1.1rem; color: #55efc4; font-weight: bold; }
+        .voice-text { font-size: 1.1rem; color: #55efc4; font-weight: bold; padding-right: 100px; line-height: 1.3; }
         
-        /* 点数は右側に配置 */
-        .score-display { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); text-align: right; }
-        .score-val { font-size: 1.5rem; font-weight: 900; display: block; line-height: 1; }
-        .score-status { font-size: 0.7rem; font-weight: bold; }
+        .score-display { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); text-align: center; width: 100px; }
+        .score-val { font-size: 1.6rem; font-weight: 900; display: block; line-height: 1; margin-bottom: 2px; }
+        .score-status { font-size: 0.7rem; font-weight: bold; white-space: nowrap; }
 
         .speak-btn { 
             width: 100%; background: var(--primary); color: white; border: none; padding: 18px; 
@@ -57,7 +55,7 @@
         }
         .speak-btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #E68A00; }
         
-        .advice-box { margin-top: 12px; background: #fff9db; padding: 12px; border-radius: 10px; font-size: 0.85rem; border-left: 4px solid #fcc419; display: none; color: #333; }
+        .advice-box { margin-top: 12px; background: #fff9db; padding: 15px; border-radius: 12px; font-size: 0.85rem; border-left: 5px solid #fcc419; display: none; color: #333; line-height: 1.5; }
     </style>
 </head>
 <body>
@@ -82,26 +80,37 @@
     <script>
         const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRAWmRJRNgjq3OtDdRPDvf3uXywGfHW6_saJSkox9Q0jHOUrg9RzjYCMcCeB8r5aesQUPJo1p1Lvbbm/pub?gid=0&single=true&output=csv';
         let allData = [];
-        let myStats = JSON.parse(localStorage.getItem('k_v8_stats') || '{}');
+        let myStats = JSON.parse(localStorage.getItem('k_v9_stats') || '{}');
         let currentOpenDate = "";
 
+        // 厳選アドバイス20種類
         const phonicsTips = {
-            'l': "『L』の発音！舌の先を上の前歯の付け根に押し当ててみて。",
-            'r': "『R』が惜しい。舌をどこにも付けずに、喉の奥に引くイメージ！",
-            'th': "『Th』は前歯で舌を軽く挟んで、息を吹くように発音して。",
-            'v': "『V』は上の前歯で下唇を軽く噛んで振動させてみて。",
-            'f': "『F』は唇を噛まずに、隙間から空気を漏らす感じだよ。",
-            's': "『S』の息の漏らし方が足りないかも。鋭く『スッ』と出そう。",
-            'sh': "『Sh』は静かにさせる時の『シー』の口を意識して。",
-            'a': "『A』は口を横に広げて『エ』と『ア』の中間を狙おう。",
-            'o': "『O』は日本語の『オ』より少し口を開けて『ア』に近く。",
-            'w': "『W』は口をタコのようにすぼめてから一気に広げて。"
+            'l': "『L』は舌先を上の前歯の裏に強く押し当てて弾いて！",
+            'r': "『R』は舌をどこにも触れさせず、奥にグッと引こう。",
+            'th': "『Th』は前歯で舌を軽く噛んで、隙間から息を出すのが正解。",
+            'v': "『V』は下唇を上の歯で軽く押さえて、喉を震わせてみて。",
+            'f': "『F』は唇を噛まず、上の歯と下唇の間から息を漏らして。",
+            's': "『S』は日本語の『ス』より鋭く、長く息を吐き出すイメージ。",
+            'sh': "『Sh』は静かにさせる時の『シー』をもっと強く出す感じ！",
+            't': "語尾の『T』は『ト』と言わず、息だけで『ッ』と止めて。",
+            'd': "語尾の『D』は声を出しすぎず、軽く弾く程度でOK。",
+            'w': "『W』は口を思いっきり突き出してから始めると伝わるよ。",
+            'a': "『A』は口を横に引きながら『ア』と『エ』を同時に出す感じ。",
+            'o': "『O』は口を縦に開けて、喉の奥から音を出してみて。",
+            'i': "『I』は口を横に引き、短くハッキリ発音しよう。",
+            'u': "『U』は日本語の『ウ』より少しリラックスして出そう。",
+            'z': "『Z』は蜂が飛ぶような『ズーー』という振動を意識！",
+            'y': "『Y』は少し『イ』を混ぜるように、粘っこく出してみよう。",
+            'g': "『G』は喉の奥を塞いでから一気に開放するイメージ。",
+            'ae': "『æ』の音は、驚いた時の『アッ』に近い口の形だよ。",
+            'n': "語尾の『N』は舌を上顎にべったりつけて音を止めて。",
+            'm': "語尾の『M』は唇をしっかり閉じて鼻から音を抜こう。"
         };
 
         function updateStats() {
             document.getElementById('dayCount').innerText = myStats[currentOpenDate] || 0;
             const myTotal = Object.values(myStats).reduce((a, b) => a + b, 0);
-            document.getElementById('globalCount').innerText = (1800 + myTotal * 12).toLocaleString();
+            document.getElementById('globalCount').innerText = (2000 + myTotal * 15).toLocaleString();
         }
 
         async function loadData() {
@@ -172,15 +181,22 @@
                             <div class="advice-box" id="advice-${id}"></div>
                         </div>`;
                 }
-                container.innerHTML += `<div class="practice-card">
-                    <div class="yt-area">
-                        <a href="${youtubeUrl}" target="_blank" class="yt-link">
-                            <svg class="yt-icon-svg" viewBox="0 0 24 24"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/></svg>
-                            <span class="yt-sub-text">この動画をショート動画で見る</span>
-                            <span class="yt-video-title">${videoTitle}</span>
-                        </a>
-                    </div>${phrasesHtml}</div>`;
+                container.innerHTML += `<div class="practice-card">${phrasesHtml}</div>`;
             });
+        }
+
+        function getStatus(score) {
+            if (score >= 100) return "伝説！Perfect";
+            if (score >= 90) return "合格！ネイティブ級";
+            if (score >= 80) return "あと一歩！";
+            if (score >= 70) return "伝わるけど惜しい";
+            if (score >= 60) return "もっとハッキリ！";
+            if (score >= 50) return "カタカナかな？";
+            if (score >= 40) return "聞き取れないな…";
+            if (score >= 30) return "頑張ろう！";
+            if (score >= 20) return "お手本を聴こう";
+            if (score >= 10) return "声が小さいかも？";
+            return "もう一度挑戦！";
         }
 
         function check(target, id) {
@@ -192,7 +208,7 @@
             
             btn.innerText = "聴いています...";
             myStats[currentOpenDate] = (myStats[currentOpenDate] || 0) + 1;
-            localStorage.setItem('k_v8_stats', JSON.stringify(myStats));
+            localStorage.setItem('k_v9_stats', JSON.stringify(myStats));
             updateStats();
 
             const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
@@ -201,6 +217,7 @@
             recognition.onresult = (event) => {
                 btn.innerText = "🎤 判定スタート";
                 const speech = event.results[0][0].transcript;
+                const conf = event.results[0][0].confidence;
                 feedback.innerText = speech;
 
                 const tWords = target.split(/\s+/);
@@ -212,9 +229,10 @@
 
                 tWords.forEach(word => {
                     const cleanW = word.toLowerCase().replace(/[.!?,]/g, "");
-                    const isCorrect = sWords.includes(cleanW);
+                    // 判定を厳格に：単語が一致し、かつ信頼度(conf)が0.94以上のみ緑
+                    const isMatched = sWords.includes(cleanW);
                     
-                    if(isCorrect) {
+                    if(isMatched && conf > 0.94) {
                         resultHtml += `<span class="word-chip perfect" onclick="playWord('${word.replace(/'/g,"")}')">${word}</span> `;
                         correctCount++;
                     } else {
@@ -225,19 +243,14 @@
                 area.innerHTML = resultHtml;
 
                 const finalScore = Math.round((correctCount / tWords.length) * 100);
-                let statusText = "";
-                let scoreColor = "#FF5252";
+                const scoreColor = finalScore >= 90 ? "#00C853" : (finalScore >= 60 ? "#FF9800" : "#FF5252");
 
                 if(finalScore >= 90) {
-                    statusText = "合格！";
-                    scoreColor = "#00C853";
                     confetti();
                     advice.style.display = "none";
                 } else {
-                    statusText = "もっといける！";
-                    scoreColor = "#FF9800";
-                    
-                    let selectedTip = "お手本をタップして音を確認してみよう！";
+                    let selectedTip = "お手本をタップして、自分の声との違いを聴き比べてみて！";
+                    // 失敗した文字からアドバイスを抽出
                     for (let key in phonicsTips) {
                         if (missedChars.includes(key)) {
                             selectedTip = phonicsTips[key];
@@ -245,15 +258,15 @@
                         }
                     }
                     advice.style.display = "block";
-                    advice.innerHTML = `<b>💡 アドバイス：</b><br>${selectedTip}`;
+                    advice.innerHTML = `<b>💡 先生からのアドバイス：</b><br>${selectedTip}`;
                 }
 
                 scoreDisp.innerHTML = `
                     <span class="score-val" style="color:${scoreColor}">${finalScore}点</span>
-                    <span class="score-status" style="color:${scoreColor}">${statusText}</span>
+                    <span class="score-status" style="color:${scoreColor}">${getStatus(finalScore)}</span>
                 `;
             };
-            recognition.onerror = () => { btn.innerText = "もう一度！"; };
+            recognition.onerror = () => { btn.innerText = "聞き取れなかった！"; };
             recognition.start();
         }
         loadData();
